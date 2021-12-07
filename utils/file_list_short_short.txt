@@ -1,0 +1,4 @@
+../datasets/TUTFS_X_KDEF/66/TD_RGB_E_4.jpg
+../datasets/TUTFS_X_KDEF/66/TD_RGB_E_3.jpg
+../datasets/TUTFS_X_KDEF/BM27/BM27AFS.JPG
+../datasets/TUTFS_X_KDEF/BM27/BM27NES.JPG
