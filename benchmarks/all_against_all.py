@@ -1,6 +1,11 @@
 import argparse
 import random
 from deepface import DeepFace
+import json
+import time
+from plotter import *
+
+errors = []
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-i", "--input", help="File containing the dataset's file paths")
@@ -10,6 +15,7 @@ parser.add_argument("-t", "--thresholds", nargs="+", action="extend", help="A li
 parser.add_argument("-dc", "--cosine", help="Test with the cosine distance metric", action="store_true")
 parser.add_argument("-de", "--euclidean", help="Test with the euclidean distance metric", action="store_true")
 parser.add_argument("-del2", "--euclidean_l2", help="Test with the euclidean_l2 distance metric", action="store_true")
+parser.add_argument("-v", "--verbose", help="Print iteration results", action="store_true")
 args = parser.parse_args()
 
 distance_metrics = []
@@ -38,12 +44,13 @@ genuine_acceptances = dict()
 genuine_rejections = dict()
 false_acceptances = dict()
 false_rejections = dict()
-
 genuine_attempts = dict()
 impostor_attempts = dict()
 
-def perform_all_against_all():
+def perform_all_against_all(distance_metrics = [], thresholds = [], verbose = False):
+
     current_combination = 1
+
     for metric in distance_metrics:
         genuine_acceptances[metric] = dict()
         genuine_rejections[metric] = dict()
@@ -53,7 +60,7 @@ def perform_all_against_all():
         genuine_attempts[metric] = dict()
         impostor_attempts[metric] = dict()
 
-        for threshold in args.thresholds:
+        for threshold in thresholds:
             threshold_str = str(threshold)
 
             genuine_acceptances[metric][threshold_str] = 0
@@ -71,13 +78,6 @@ def perform_all_against_all():
 
                     if (second_identity_index == first_identity_index): continue
 
-                    second_identity_name = lines[second_identity_index].split('/')[3]
-
-                    if (first_identity_name == second_identity_name):
-                        genuine_attempts[metric][threshold_str] += 1
-                    else:
-                        impostor_attempts[metric][threshold_str] += 1
-
                     try:
                         result = DeepFace.verify(
                             img1_path = lines[first_identity_index],
@@ -87,7 +87,20 @@ def perform_all_against_all():
                     except ValueError as e:
                         # happens when the img cannot be loaded
                         print(e, lines[first_identity_index], lines[second_identity_index])
+
+                        errors.append({
+                            "error": e,
+                            "img1_path": lines[first_identity_index],
+                            "img2_path": lines[second_identity_index],
+                        })
                         continue
+
+                    second_identity_name = lines[second_identity_index].split('/')[3]
+
+                    if (first_identity_name == second_identity_name):
+                        genuine_attempts[metric][threshold_str] += 1
+                    else:
+                        impostor_attempts[metric][threshold_str] += 1
 
                     verified = verify(result['distance'], threshold)
 
@@ -99,14 +112,26 @@ def perform_all_against_all():
 
                     false_rejections[metric][threshold_str] += int(not verified and (first_identity_name == second_identity_name))
 
-                    print(f"Matching faces: {first_identity_index} ({first_identity_name}) VS {second_identity_index} ({second_identity_name})")
-                    print(f"DeepFace says:  {result['verified']}")
-                    print(f"Should be:      {result['verified']} and (first_identity_name == second_identity_name)")
-                    print(f"Distance:       {result['distance']}")
-                    print(f"Threshold:      {threshold}")
-                    print(f"Progress:       {current_combination}/{total_combinations} [{round(current_combination/total_combinations*100, 2)}%]")
-                    print("----------------------------------------------------------------------------------------")
-                    current_combination += 1
+                    if (verbose):
+                        print(f"Matching faces:  {first_identity_index} ({first_identity_name}) VS {second_identity_index} ({second_identity_name})")
+                        print(f"DeepFace says:   {verified}")
+                        print(f"Should be:       {first_identity_name == second_identity_name}")
+                        print(f"Distance:        {result['distance']}")
+                        print(f"Threshold:       {threshold}")
+                        print(f"Distance metric: {metric}")
+                        print(f"Progress:        {current_combination}/{total_combinations} [{round(current_combination/total_combinations*100, 2)}%]")
+                        print("----------------------------------------------------------------------------------------")
+
+                        current_combination += 1
+
+    return {
+        "genuine_acceptances": genuine_acceptances,
+        "genuine_rejections": genuine_rejections,
+        "false_acceptances": false_acceptances,
+        "false_rejections": false_rejections,
+        "genuine_attempts": genuine_attempts,
+        "impostor_attempts": impostor_attempts
+    }
 
 def print_recognition_metrics():
     for metric in distance_metrics:
@@ -157,9 +182,17 @@ def print_recognition_metrics():
             )
             print()
 
+results = perform_all_against_all(distance_metrics, args.thresholds, args.verbose)
 
-perform_all_against_all()
+time = str(time.time())
 
-print_recognition_metrics()
+with open("../logs/" + time + ".json", "w") as output_log:
+    output_log.write(json.dumps(results, indent = 4))
+    output_log.close()
 
-# TODO: dump dicts to json file
+with open("../logs/" + time + ".err.json", "w") as error_log:
+    error_log.write(json.dumps(errors, indent = 4))
+    error_log.close()
+
+
+# print_recognition_metrics()
