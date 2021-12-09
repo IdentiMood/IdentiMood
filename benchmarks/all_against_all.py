@@ -3,7 +3,9 @@ import random
 from deepface import DeepFace
 import json
 import time
+from datetime import datetime
 from plotter import *
+import numpy as np
 
 errors = []
 
@@ -12,11 +14,17 @@ parser.add_argument("-i", "--input", help="File containing the dataset's file pa
 parser.add_argument("-s", "--shuffle", help="Whether to shuffle the paths list", action="store_true")
 parser.add_argument("-l", "--limit", help="Whether to limit the (eventually shuffled) paths list to a certain length", type=int)
 parser.add_argument("-t", "--thresholds", nargs="+", action="extend", help="A list of thresholds to test", type=float)
+parser.add_argument("-tr", "--threshold-range", nargs="+", action="extend", help="creates an evenly spaced range over a specified interval. Args: start, stop, number of values", type=float)
 parser.add_argument("-dc", "--cosine", help="Test with the cosine distance metric", action="store_true")
 parser.add_argument("-de", "--euclidean", help="Test with the euclidean distance metric", action="store_true")
 parser.add_argument("-del2", "--euclidean_l2", help="Test with the euclidean_l2 distance metric", action="store_true")
 parser.add_argument("-v", "--verbose", help="Print iteration results", action="store_true")
 args = parser.parse_args()
+
+if args.threshold_range:
+    args.thresholds = np.linspace(
+        args.threshold_range[0], args.threshold_range[1], int(args.threshold_range[2])
+    )
 
 distance_metrics = []
 if args.cosine:
@@ -44,8 +52,15 @@ genuine_acceptances = dict()
 genuine_rejections = dict()
 false_acceptances = dict()
 false_rejections = dict()
+
 genuine_attempts = dict()
 impostor_attempts = dict()
+
+genuine_acceptance_rate = dict()
+genuine_rejection_rate = dict()
+false_acceptance_rate = dict()
+false_rejection_rate = dict()
+error_rate = dict()
 
 def perform_all_against_all(distance_metrics = [], thresholds = [], verbose = False):
 
@@ -60,6 +75,12 @@ def perform_all_against_all(distance_metrics = [], thresholds = [], verbose = Fa
         genuine_attempts[metric] = dict()
         impostor_attempts[metric] = dict()
 
+        genuine_acceptance_rate[metric] = dict()
+        genuine_rejection_rate[metric] = dict()
+        false_acceptance_rate[metric] = dict()
+        false_rejection_rate[metric] = dict()
+        error_rate[metric] = dict()
+
         for threshold in thresholds:
             threshold_str = str(threshold)
 
@@ -70,6 +91,12 @@ def perform_all_against_all(distance_metrics = [], thresholds = [], verbose = Fa
 
             genuine_attempts[metric][threshold_str] = 0
             impostor_attempts[metric][threshold_str] = 0
+
+            genuine_acceptance_rate[metric][threshold_str] = 0
+            genuine_rejection_rate[metric][threshold_str] = 0
+            false_acceptance_rate[metric][threshold_str] = 0
+            false_rejection_rate[metric][threshold_str] = 0
+            error_rate[metric][threshold_str] = 0
 
             for first_identity_index in range(0, len(lines)):
                 first_identity_name = lines[first_identity_index].split('/')[3]
@@ -124,13 +151,43 @@ def perform_all_against_all(distance_metrics = [], thresholds = [], verbose = Fa
 
                         current_combination += 1
 
+            ga = genuine_attempts[metric][threshold_str]
+
+            if (ga != 0):
+                genuine_acceptance_rate[metric][threshold_str] = \
+                    genuine_acceptances[metric][threshold_str] / ga
+
+                false_rejection_rate[metric][threshold_str] = \
+                    false_rejections[metric][threshold_str] / ga
+
+            ia = impostor_attempts[metric][threshold_str]
+
+            if (ia != 0):
+                genuine_rejection_rate[metric][threshold_str] = \
+                    genuine_rejections[metric][threshold_str] / ia
+
+                false_acceptance_rate[metric][threshold_str] = \
+                    false_acceptances[metric][threshold_str] / ia
+
+            # should never be the case, but, one can never know... :(
+            if (ga + ia != 0):
+                error_rate[metric][threshold_str] = (
+                    false_acceptances[metric][threshold_str] +
+                    false_rejections[metric][threshold_str]
+                ) / (ga + ia)
+
     return {
         "genuine_acceptances": genuine_acceptances,
         "genuine_rejections": genuine_rejections,
         "false_acceptances": false_acceptances,
         "false_rejections": false_rejections,
         "genuine_attempts": genuine_attempts,
-        "impostor_attempts": impostor_attempts
+        "impostor_attempts": impostor_attempts,
+        "genuine_acceptance_rate": genuine_acceptance_rate,
+        "genuine_rejection_rate": genuine_rejection_rate,
+        "false_acceptance_rate": false_acceptance_rate,
+        "false_rejection_rate": false_rejection_rate,
+        "error_rate": error_rate
     }
 
 def print_recognition_metrics():
@@ -156,43 +213,66 @@ def print_recognition_metrics():
             print()
             print(
                 "GAR[", metric, "][", threshold_str, "]: ",
-                genuine_acceptances[metric][threshold_str] / genuine_attempts[metric][threshold_str]
+                genuine_acceptance_rate[metric][threshold_str]
             )
             print(
                 "GRR[", metric, "][", threshold_str, "]: ",
-                genuine_rejections[metric][threshold_str] / impostor_attempts[metric][threshold_str]
+                genuine_rejection_rate[metric][threshold_str]
             )
             print(
                 "FAR[", metric, "][", threshold_str, "]: ",
-                false_acceptances[metric][threshold_str] / impostor_attempts[metric][threshold_str]
+                false_acceptance_rate[metric][threshold_str]
             )
             print(
                 "FRR[", metric, "][", threshold_str, "]: ",
-                false_rejections[metric][threshold_str] / genuine_attempts[metric][threshold_str]
+                false_rejection_rate[metric][threshold_str]
             )
             print(
-                "Error rate[", metric, "][", threshold_str, "]: ",
-                (
-                    false_acceptances[metric][threshold_str] +
-                    false_rejections[metric][threshold_str]
-                ) / (
-                    genuine_attempts[metric][threshold_str] +
-                    impostor_attempts[metric][threshold_str]
-                )
+                "Error rate[", metric, "][", threshold_str, "]: ", error_rate[metric][threshold_str]
             )
             print()
 
 results = perform_all_against_all(distance_metrics, args.thresholds, args.verbose)
 
-time = str(time.time())
+file_name = datetime.fromtimestamp(time.time()).strftime('%y_%m_%d_%H:%M:%S')
 
-with open("../logs/" + time + ".json", "w") as output_log:
+with open("../logs/" + file_name + ".json", "w") as output_log:
     output_log.write(json.dumps(results, indent = 4))
     output_log.close()
 
-with open("../logs/" + time + ".err.json", "w") as error_log:
+with open("../logs/" + file_name + ".err.json", "w") as error_log:
     error_log.write(json.dumps(errors, indent = 4))
     error_log.close()
 
+# plot number 1, no specific name: x = thresholds, y = FRR, FAR
+plot_name = "false_rejection_rate_VS_false_acceptance_rate_USING_cosine"
+plot(
+    [
+        args.thresholds,
+        args.thresholds
+    ],
+    [
+        results['false_rejection_rate']['cosine'].values(),
+        results['false_acceptance_rate']['cosine'].values()
+    ],
+    "thresholds", ["False Rejection Rate", "False Acceptance Rate"], plot_name,
+    True, "../plots/" + plot_name + "/" + file_name + ".png"
+)
 
-# print_recognition_metrics()
+# plot number 2, ROC: x = FAR, y = GAR
+plot_name = "ROC_USING_cosine"
+plot(
+    [results['false_acceptance_rate']['cosine'].values()],
+    [results['genuine_acceptance_rate']['cosine'].values()],
+    "False Acceptance Rate", "Genuine Acceptance Rate", plot_name,
+    True, "../plots/" + plot_name + "/" + file_name + ".png"
+)
+
+# plot number 3, DET (logarithmic scale): x = FAR, y = FRR
+plot_name = "DET_USING_cosine"
+plot(
+    [results['false_acceptance_rate']['cosine'].values()],
+    [results['false_rejection_rate']['cosine'].values()],
+    "False Acceptance Rate", "Genuine Acceptance Rate", plot_name,
+    True, "../plots/" + plot_name + "/" + file_name + ".png"
+)
