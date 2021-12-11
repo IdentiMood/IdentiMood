@@ -6,6 +6,8 @@ import time
 from datetime import datetime
 from plotter import *
 import numpy as np
+import os
+from joblib import Parallel, delayed
 
 errors = []
 
@@ -62,9 +64,32 @@ false_acceptance_rate = dict()
 false_rejection_rate = dict()
 error_rate = dict()
 
+results = dict()
+
 def perform_all_against_all(distance_metrics = [], thresholds = [], verbose = False):
 
     current_combination = 1
+
+    if (verbose):
+        total_combinations_w_threshold = 250000 # number of verifies times number of metrics
+        print("Total number of input files", len(lines))
+        print("One physical machine will compute", total_combinations_w_threshold, "combinations")
+        print("One physical machine will take", total_combinations_w_threshold * 0.6 , "secs")
+        print("One physical machine will take", total_combinations_w_threshold * 0.6 / 60, "mins")
+        print("One physical machine will take", total_combinations_w_threshold * 0.6 / 3600, "hours")
+        print("One physical machine will take", total_combinations_w_threshold * 0.6 / 86400, "days")
+        print("----------------------------------------------------------------------------------------")
+
+        total_combinations = 250000 # number of verifies times number of metrics
+        print("Total number of input files", len(lines))
+        print("One physical machine will compute", total_combinations, "combinations")
+        print("One physical machine will take", total_combinations * 0.6 / len(args.thresholds), "secs")
+        print("One physical machine will take", total_combinations * 0.6 / 60 / len(args.thresholds), "mins")
+        print("One physical machine will take", total_combinations * 0.6 / 3600 / len(args.thresholds), "hours")
+        print("One physical machine will take", total_combinations * 0.6 / 86400 / len(args.thresholds), "days")
+        print("----------------------------------------------------------------------------------------")
+
+    exit()
 
     for metric in distance_metrics:
         genuine_acceptances[metric] = dict()
@@ -102,6 +127,8 @@ def perform_all_against_all(distance_metrics = [], thresholds = [], verbose = Fa
                 first_identity_name = lines[first_identity_index].split('/')[3]
 
                 for second_identity_index in range(0, len(lines)):
+
+                    start_time = time.time()
 
                     if (second_identity_index == first_identity_index): continue
 
@@ -147,10 +174,10 @@ def perform_all_against_all(distance_metrics = [], thresholds = [], verbose = Fa
                         print(f"Threshold:       {threshold}")
                         print(f"Distance metric: {metric}")
                         print(f"Progress:        {current_combination}/{total_combinations} [{round(current_combination/total_combinations*100, 2)}%]")
+                        print(f"Execution time:  {time.time() - start_time} seconds")
                         print("----------------------------------------------------------------------------------------")
 
                         current_combination += 1
-
             ga = genuine_attempts[metric][threshold_str]
 
             if (ga != 0):
@@ -232,6 +259,77 @@ def print_recognition_metrics():
             )
             print()
 
+# TFF: x = thresholds, y = FRR, FAR
+def compute_threshold_FAR_FRR_plot(distance_metric_name, show_plot, file_name):
+
+    folder_path = f'''../plots/{distance_metric_name}/{args.threshold_range[0]}_
+        {args.threshold_range[1]}_{int(args.threshold_range[2])}'''
+    if not os.path.exists(folder_path):
+        os.makedirs(folder_path)
+
+    plot_name = f"{folder_path}/tff_{file_name}.png"
+
+    plot(
+        [ args.thresholds, args.thresholds ],
+        [
+            results['false_rejection_rate'][distance_metric_name].values(),
+            results['false_acceptance_rate'][distance_metric_name].values()
+        ],
+        [ "thresholds" ], [ "False Rejection Rate", "False Acceptance Rate" ],
+        [ "False Rejection Rate", "False Acceptance Rate" ],
+        "thresholds VS. FRR and FAR", show_plot, plot_name,
+        "linear", "linear"
+    )
+
+# ROC: x = FAR, y = GAR
+def compute_ROC_plot(distance_metric_name, show_plot, file_name):
+
+    folder_path = f'''../plots/{distance_metric_name}/{args.threshold_range[0]}_
+        {args.threshold_range[1]}_{int(args.threshold_range[2])}'''
+    if not os.path.exists(folder_path):
+        os.makedirs(folder_path)
+
+    plot_name = f"{folder_path}/roc_{file_name}.png"
+
+
+    plot(
+        [ results['false_acceptance_rate'][distance_metric_name].values() ],
+        [ results['genuine_acceptance_rate'][distance_metric_name].values() ],
+        [ "False Acceptance Rate" ], [ "Genuine Acceptance Rate" ], ["ROC"],
+        "ROC", show_plot, plot_name,
+        "linear", "linear"
+    )
+
+# DET (logarithmic scale): x = FAR, y = FRR
+def compute_DET_plot(distance_metric_name, show_plot, file_name):
+    folder_path = f'''../plots/{distance_metric_name}/{args.threshold_range[0]}_
+        {args.threshold_range[1]}_{int(args.threshold_range[2])}'''
+    if not os.path.exists(folder_path):
+        os.makedirs(folder_path)
+
+    plot_name = f"{folder_path}/det_{file_name}.png"
+
+    plot(
+        [results['false_acceptance_rate'][distance_metric_name].values()],
+        [results['false_rejection_rate'][distance_metric_name].values()],
+        ["False Acceptance Rate"], ["Genuine Acceptance Rate"], ["DET"],
+        "DET", show_plot, plot_name,
+        # TODO
+        # BE WARE! should use "log" "log"
+        # BUT current values are too low so log display does not work.
+        # "log", "log",
+        "linear", "linear"
+    )
+
+def compute_plots(show_plot, file_name):
+    for metric in distance_metrics:
+        compute_threshold_FAR_FRR_plot(metric, show_plot, file_name)
+
+        compute_ROC_plot(metric, show_plot, file_name)
+
+        compute_DET_plot(metric, show_plot, file_name)
+
+
 results = perform_all_against_all(distance_metrics, args.thresholds, args.verbose)
 
 file_name = datetime.fromtimestamp(time.time()).strftime('%y_%m_%d_%H:%M:%S')
@@ -244,38 +342,4 @@ with open("../logs/" + file_name + ".err.json", "w") as error_log:
     error_log.write(json.dumps(errors, indent = 4))
     error_log.close()
 
-# plot number 1, no specific name: x = thresholds, y = FRR, FAR
-plot_name = "false_rejection_rate_VS_false_acceptance_rate_USING_cosine"
-plot(
-    [
-        args.thresholds,
-        args.thresholds
-    ],
-    [
-        results['false_rejection_rate']['cosine'].values(),
-        results['false_acceptance_rate']['cosine'].values()
-    ],
-    "thresholds", ["False Rejection Rate", "False Acceptance Rate"], plot_name,
-    True, "../plots/" + plot_name + "/" + file_name + ".png",
-    "linear", "linear"
-)
-
-# plot number 2, ROC: x = FAR, y = GAR
-plot_name = "ROC_USING_cosine"
-plot(
-    [results['false_acceptance_rate']['cosine'].values()],
-    [results['genuine_acceptance_rate']['cosine'].values()],
-    "False Acceptance Rate", "Genuine Acceptance Rate", plot_name,
-    True, "../plots/" + plot_name + "/" + file_name + ".png",
-    "linear", "linear"
-)
-
-# plot number 3, DET (logarithmic scale): x = FAR, y = FRR
-plot_name = "DET_USING_cosine"
-plot(
-    [results['false_acceptance_rate']['cosine'].values()],
-    [results['false_rejection_rate']['cosine'].values()],
-    "False Acceptance Rate", "Genuine Acceptance Rate", plot_name,
-    True, "../plots/" + plot_name + "/" + file_name + ".png",
-    "log", "log"
-)
+compute_plots(False, file_name)
