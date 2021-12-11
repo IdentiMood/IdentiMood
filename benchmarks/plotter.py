@@ -3,7 +3,8 @@ import matplotlib.pyplot as plt
 def plot(
     x_axis, y_axis,
     x_label = "x - axis", y_label = "y - label", plot_name = " ", plot = True,
-    plot_file_name_with_path = None
+    plot_file_name_with_path = None,
+    x_axis_scale = "linear", y_axis_scale = "linear"
 ):
     # naming the x axis
     plt.xlabel(x_label)
@@ -12,6 +13,9 @@ def plot(
 
     # giving a title to my graph
     plt.title(plot_name)
+
+    plt.set_xscale(x_axis_scale)
+    plt.set_yscale(y_axis_scale)
 
     # TODO use zip
     #      loop over zipped x_axis and y_axis

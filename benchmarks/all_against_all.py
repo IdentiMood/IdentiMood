@@ -256,7 +256,8 @@ plot(
         results['false_acceptance_rate']['cosine'].values()
     ],
     "thresholds", ["False Rejection Rate", "False Acceptance Rate"], plot_name,
-    True, "../plots/" + plot_name + "/" + file_name + ".png"
+    True, "../plots/" + plot_name + "/" + file_name + ".png",
+    "linear", "linear"
 )
 
 # plot number 2, ROC: x = FAR, y = GAR
@@ -265,7 +266,8 @@ plot(
     [results['false_acceptance_rate']['cosine'].values()],
     [results['genuine_acceptance_rate']['cosine'].values()],
     "False Acceptance Rate", "Genuine Acceptance Rate", plot_name,
-    True, "../plots/" + plot_name + "/" + file_name + ".png"
+    True, "../plots/" + plot_name + "/" + file_name + ".png",
+    "linear", "linear"
 )
 
 # plot number 3, DET (logarithmic scale): x = FAR, y = FRR
@@ -274,5 +276,6 @@ plot(
     [results['false_acceptance_rate']['cosine'].values()],
     [results['false_rejection_rate']['cosine'].values()],
     "False Acceptance Rate", "Genuine Acceptance Rate", plot_name,
-    True, "../plots/" + plot_name + "/" + file_name + ".png"
+    True, "../plots/" + plot_name + "/" + file_name + ".png",
+    "log", "log"
 )
