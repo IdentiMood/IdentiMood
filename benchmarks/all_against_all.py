@@ -70,27 +70,6 @@ def perform_all_against_all(distance_metrics = [], thresholds = [], verbose = Fa
 
     current_combination = 1
 
-    if (verbose):
-        total_combinations_w_threshold = 250000 # number of verifies times number of metrics
-        print("Total number of input files", len(lines))
-        print("One physical machine will compute", total_combinations_w_threshold, "combinations")
-        print("One physical machine will take", total_combinations_w_threshold * 0.6 , "secs")
-        print("One physical machine will take", total_combinations_w_threshold * 0.6 / 60, "mins")
-        print("One physical machine will take", total_combinations_w_threshold * 0.6 / 3600, "hours")
-        print("One physical machine will take", total_combinations_w_threshold * 0.6 / 86400, "days")
-        print("----------------------------------------------------------------------------------------")
-
-        total_combinations = 250000 # number of verifies times number of metrics
-        print("Total number of input files", len(lines))
-        print("One physical machine will compute", total_combinations, "combinations")
-        print("One physical machine will take", total_combinations * 0.6 / len(args.thresholds), "secs")
-        print("One physical machine will take", total_combinations * 0.6 / 60 / len(args.thresholds), "mins")
-        print("One physical machine will take", total_combinations * 0.6 / 3600 / len(args.thresholds), "hours")
-        print("One physical machine will take", total_combinations * 0.6 / 86400 / len(args.thresholds), "days")
-        print("----------------------------------------------------------------------------------------")
-
-    exit()
-
     for metric in distance_metrics:
         genuine_acceptances[metric] = dict()
         genuine_rejections[metric] = dict()
@@ -123,33 +102,34 @@ def perform_all_against_all(distance_metrics = [], thresholds = [], verbose = Fa
             false_rejection_rate[metric][threshold_str] = 0
             error_rate[metric][threshold_str] = 0
 
-            for first_identity_index in range(0, len(lines)):
-                first_identity_name = lines[first_identity_index].split('/')[3]
+        for first_identity_index in range(0, len(lines)):
+            first_identity_name = lines[first_identity_index].split('/')[3]
 
-                for second_identity_index in range(0, len(lines)):
+            for second_identity_index in range(0, len(lines)):
 
-                    start_time = time.time()
+                if (second_identity_index == first_identity_index): continue
 
-                    if (second_identity_index == first_identity_index): continue
+                try:
+                    result = DeepFace.verify(
+                        img1_path = lines[first_identity_index],
+                        img2_path = lines[second_identity_index],
+                        model = model
+                    )
+                except ValueError as e:
+                    # happens when the img cannot be loaded
+                    print(e, lines[first_identity_index], lines[second_identity_index])
 
-                    try:
-                        result = DeepFace.verify(
-                            img1_path = lines[first_identity_index],
-                            img2_path = lines[second_identity_index],
-                            model = model
-                        )
-                    except ValueError as e:
-                        # happens when the img cannot be loaded
-                        print(e, lines[first_identity_index], lines[second_identity_index])
+                    errors.append({
+                        "error": e,
+                        "img1_path": lines[first_identity_index],
+                        "img2_path": lines[second_identity_index],
+                    })
+                    continue
 
-                        errors.append({
-                            "error": e,
-                            "img1_path": lines[first_identity_index],
-                            "img2_path": lines[second_identity_index],
-                        })
-                        continue
+                second_identity_name = lines[second_identity_index].split('/')[3]
 
-                    second_identity_name = lines[second_identity_index].split('/')[3]
+                for threshold in thresholds:
+                    threshold_str = str(threshold)
 
                     if (first_identity_name == second_identity_name):
                         genuine_attempts[metric][threshold_str] += 1
@@ -166,6 +146,31 @@ def perform_all_against_all(distance_metrics = [], thresholds = [], verbose = Fa
 
                     false_rejections[metric][threshold_str] += int(not verified and (first_identity_name == second_identity_name))
 
+                    ga = genuine_attempts[metric][threshold_str]
+
+                    if (ga != 0):
+                        genuine_acceptance_rate[metric][threshold_str] = \
+                            genuine_acceptances[metric][threshold_str] / ga
+
+                        false_rejection_rate[metric][threshold_str] = \
+                            false_rejections[metric][threshold_str] / ga
+
+                    ia = impostor_attempts[metric][threshold_str]
+
+                    if (ia != 0):
+                        genuine_rejection_rate[metric][threshold_str] = \
+                            genuine_rejections[metric][threshold_str] / ia
+
+                        false_acceptance_rate[metric][threshold_str] = \
+                            false_acceptances[metric][threshold_str] / ia
+
+                    # should never be the case, but, one can never know... :(
+                    if (ga + ia != 0):
+                        error_rate[metric][threshold_str] = (
+                            false_acceptances[metric][threshold_str] +
+                            false_rejections[metric][threshold_str]
+                        ) / (ga + ia)
+
                     if (verbose):
                         print(f"Matching faces:  {first_identity_index} ({first_identity_name}) VS {second_identity_index} ({second_identity_name})")
                         print(f"DeepFace says:   {verified}")
@@ -174,34 +179,9 @@ def perform_all_against_all(distance_metrics = [], thresholds = [], verbose = Fa
                         print(f"Threshold:       {threshold}")
                         print(f"Distance metric: {metric}")
                         print(f"Progress:        {current_combination}/{total_combinations} [{round(current_combination/total_combinations*100, 2)}%]")
-                        print(f"Execution time:  {time.time() - start_time} seconds")
                         print("----------------------------------------------------------------------------------------")
 
                         current_combination += 1
-            ga = genuine_attempts[metric][threshold_str]
-
-            if (ga != 0):
-                genuine_acceptance_rate[metric][threshold_str] = \
-                    genuine_acceptances[metric][threshold_str] / ga
-
-                false_rejection_rate[metric][threshold_str] = \
-                    false_rejections[metric][threshold_str] / ga
-
-            ia = impostor_attempts[metric][threshold_str]
-
-            if (ia != 0):
-                genuine_rejection_rate[metric][threshold_str] = \
-                    genuine_rejections[metric][threshold_str] / ia
-
-                false_acceptance_rate[metric][threshold_str] = \
-                    false_acceptances[metric][threshold_str] / ia
-
-            # should never be the case, but, one can never know... :(
-            if (ga + ia != 0):
-                error_rate[metric][threshold_str] = (
-                    false_acceptances[metric][threshold_str] +
-                    false_rejections[metric][threshold_str]
-                ) / (ga + ia)
 
     return {
         "genuine_acceptances": genuine_acceptances,
@@ -329,8 +309,11 @@ def compute_plots(show_plot, file_name):
 
         compute_DET_plot(metric, show_plot, file_name)
 
-
+start_time = time.time()
 results = perform_all_against_all(distance_metrics, args.thresholds, args.verbose)
+end_time = time.time()
+print("Total execution time (s)       : ", end_time - start_time)
+print("Average single match execution time (s): ", (end_time - start_time) / total_combinations / len(args.thresholds))
 
 file_name = datetime.fromtimestamp(time.time()).strftime('%y_%m_%d_%H:%M:%S')
 
