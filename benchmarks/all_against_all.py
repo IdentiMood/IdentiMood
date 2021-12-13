@@ -7,7 +7,6 @@ from datetime import datetime
 from plotter import *
 import numpy as np
 import os
-from joblib import Parallel, delayed
 
 errors = []
 
@@ -242,8 +241,8 @@ def print_recognition_metrics():
 # TFF: x = thresholds, y = FRR, FAR
 def compute_threshold_FAR_FRR_plot(distance_metric_name, show_plot, file_name):
 
-    folder_path = f'''../plots/{distance_metric_name}/{args.threshold_range[0]}_
-        {args.threshold_range[1]}_{int(args.threshold_range[2])}'''
+    folder_path = f"../plots/{distance_metric_name}/{args.threshold_range[0]}_" + \
+        f"{args.threshold_range[1]}_{int(args.threshold_range[2])}"
     if not os.path.exists(folder_path):
         os.makedirs(folder_path)
 
@@ -264,8 +263,8 @@ def compute_threshold_FAR_FRR_plot(distance_metric_name, show_plot, file_name):
 # ROC: x = FAR, y = GAR
 def compute_ROC_plot(distance_metric_name, show_plot, file_name):
 
-    folder_path = f'''../plots/{distance_metric_name}/{args.threshold_range[0]}_
-        {args.threshold_range[1]}_{int(args.threshold_range[2])}'''
+    folder_path = f"../plots/{distance_metric_name}/{args.threshold_range[0]}_" + \
+        f"{args.threshold_range[1]}_{int(args.threshold_range[2])}"
     if not os.path.exists(folder_path):
         os.makedirs(folder_path)
 
@@ -282,8 +281,8 @@ def compute_ROC_plot(distance_metric_name, show_plot, file_name):
 
 # DET (logarithmic scale): x = FAR, y = FRR
 def compute_DET_plot(distance_metric_name, show_plot, file_name):
-    folder_path = f'''../plots/{distance_metric_name}/{args.threshold_range[0]}_
-        {args.threshold_range[1]}_{int(args.threshold_range[2])}'''
+    folder_path = f"../plots/{distance_metric_name}/{args.threshold_range[0]}_"+ \
+        f"{args.threshold_range[1]}_{int(args.threshold_range[2])}"
     if not os.path.exists(folder_path):
         os.makedirs(folder_path)
 
@@ -315,7 +314,7 @@ end_time = time.time()
 print("Total execution time (s)       : ", end_time - start_time)
 print("Average single match execution time (s): ", (end_time - start_time) / total_combinations / len(args.thresholds))
 
-file_name = datetime.fromtimestamp(time.time()).strftime('%y_%m_%d_%H:%M:%S')
+file_name = datetime.fromtimestamp(time.time()).strftime('%y_%m_%d_%H-%M-%S')
 
 with open("../logs/" + file_name + ".json", "w") as output_log:
     output_log.write(json.dumps(results, indent = 4))
