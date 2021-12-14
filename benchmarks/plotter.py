@@ -1,6 +1,8 @@
 import matplotlib.pyplot as plt
 import json
 import os
+import sys
+
 
 def plot(
     x_axis, y_axis,
@@ -8,7 +10,7 @@ def plot(
     plot_name = " ", plot = True,
     plot_file_name_with_path = None,
     x_axis_scale = "linear", y_axis_scale = "linear",
-    ticks_to_use = None
+    ticks_to_use = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]
 ):
     # naming the x axis
     plt.xlabel(x_label)
@@ -114,7 +116,7 @@ def compute_plots(show_plot, file_name):
 
         compute_DET_plot(metric, show_plot, file_name, results)
 
-json_path = "../logs/21_12_14_11-29-22.json"
+json_path = sys.argv[1]
 
 # Opening JSON file
 f = open(json_path)
@@ -131,4 +133,4 @@ print(distance_metrics)
 
 thresholds = list(results["genuine_acceptances"][distance_metrics[0]].keys())
 
-compute_plots(False, "test")
+compute_plots(bool(int(sys.argv[2])), "TODO add plot name")
