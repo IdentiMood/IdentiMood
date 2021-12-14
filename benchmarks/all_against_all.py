@@ -178,7 +178,7 @@ def perform_all_against_all(distance_metrics = [], thresholds = [], verbose = Fa
                             false_rejections[metric][threshold_str]
                         ) / (ga + ia)
 
-                    if ((current_combination % 2)):
+                    if ((current_combination % 4000) == 0):
                         temp_json = {
                             "genuine_acceptances": genuine_acceptances,
                             "genuine_rejections": genuine_rejections,
