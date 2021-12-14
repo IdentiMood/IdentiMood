@@ -67,6 +67,14 @@ results = dict()
 
 def perform_all_against_all(distance_metrics = [], thresholds = [], verbose = False):
 
+    # estimated_exec_time_seconds = total_combinations * 0.2
+    # print("total combinations: ", total_combinations)
+    # print("should take: ", estimated_exec_time_seconds, "seconds")
+    # print("should take: ", estimated_exec_time_seconds / 60, "minutes")
+    # print("should take: ", estimated_exec_time_seconds / 3600, "hours")
+    # print("should take: ", estimated_exec_time_seconds / (3600 * 24), "days")
+    # exit()
+
     current_combination = 1
 
     for metric in distance_metrics:
@@ -170,6 +178,28 @@ def perform_all_against_all(distance_metrics = [], thresholds = [], verbose = Fa
                             false_rejections[metric][threshold_str]
                         ) / (ga + ia)
 
+                    if ((current_combination % 2)):
+                        temp_json = {
+                            "genuine_acceptances": genuine_acceptances,
+                            "genuine_rejections": genuine_rejections,
+                            "false_acceptances": false_acceptances,
+                            "false_rejections": false_rejections,
+                            "genuine_attempts": genuine_attempts,
+                            "impostor_attempts": impostor_attempts,
+                            "genuine_acceptance_rate": genuine_acceptance_rate,
+                            "genuine_rejection_rate": genuine_rejection_rate,
+                            "false_acceptance_rate": false_acceptance_rate,
+                            "false_rejection_rate": false_rejection_rate,
+                            "error_rate": error_rate
+                        }
+
+                        print("Storing checkpoint json...")
+
+                        file_name = datetime.fromtimestamp(time.time()).strftime('%y_%m_%d_%H-%M-%S') + "_" + str(current_combination)
+                        with open("../logs/checkpoints/" + file_name + ".json", "w") as output_log:
+                            output_log.write(json.dumps(temp_json, indent = 2))
+                            output_log.close()
+                    
                     if (verbose):
                         print(f"Matching faces:  {first_identity_index} ({first_identity_name}) VS {second_identity_index} ({second_identity_name})")
                         print(f"DeepFace says:   {verified}")
@@ -181,6 +211,7 @@ def perform_all_against_all(distance_metrics = [], thresholds = [], verbose = Fa
                         print("----------------------------------------------------------------------------------------")
 
                         current_combination += 1
+
 
     return {
         "genuine_acceptances": genuine_acceptances,
@@ -324,4 +355,4 @@ with open("../logs/" + file_name + ".err.json", "w") as error_log:
     error_log.write(json.dumps(errors, indent = 4))
     error_log.close()
 
-compute_plots(False, file_name)
+#compute_plots(False, file_name)
