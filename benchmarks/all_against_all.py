@@ -4,9 +4,7 @@ from deepface import DeepFace
 import json
 import time
 from datetime import datetime
-from plotter import *
 import numpy as np
-import os
 
 errors = []
 
