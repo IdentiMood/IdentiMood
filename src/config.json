@@ -1,0 +1,13 @@
+{
+    "verify": {
+        "threshold": 0.3,
+        "model_name": "VGG-Face",
+        "detector_backend": "opencv",
+        "distance_metric": "cosine",
+        "normalization": "base"
+    },
+    "mood": {
+        "threshold_percent": 70.0,
+        "detector_backend": "opencv"
+    }
+}
