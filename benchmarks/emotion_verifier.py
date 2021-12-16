@@ -7,7 +7,7 @@ import time
 from datetime import datetime
 import json
 
-errors = dict()
+errors = []
 
 class NpEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -108,7 +108,7 @@ def compute_emotions_against_thresholds(thresholds = [0]):
         except ValueError as e:
             print(e)
 
-            errors.append({
+            errors.add({
                 "error": e,
                 "img_path": line,
             })
