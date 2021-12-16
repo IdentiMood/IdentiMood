@@ -154,5 +154,5 @@ with open("../logs/emotion/" + file_name + ".json", "w") as output_log:
     output_log.close()
 
 with open("../logs/emotion/" + file_name + ".err.json", "w") as error_log:
-    error_log.write(json.dumps(errors, indent = 4))
+    error_log.write(json.dumps(errors, indent = 4, cls=NpEncoder))
     error_log.close()
