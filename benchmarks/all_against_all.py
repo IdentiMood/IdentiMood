@@ -194,7 +194,7 @@ def perform_all_against_all(distance_metrics = [], thresholds = [], verbose = Fa
                         print("Storing checkpoint json...")
 
                         file_name = datetime.fromtimestamp(time.time()).strftime('%y_%m_%d_%H-%M-%S') + "_" + str(current_combination)
-                        with open("../logs/checkpoints/" + file_name + ".json", "w") as output_log:
+                        with open("../logs/identification/checkpoints/" + file_name + ".json", "w") as output_log:
                             output_log.write(json.dumps(temp_json, indent = 2))
                             output_log.close()
                     
@@ -283,10 +283,10 @@ print("Average single match execution time (s): ", (end_time - start_time) / tot
 
 file_name = datetime.fromtimestamp(time.time()).strftime('%y_%m_%d_%H-%M-%S')
 
-with open("../logs/" + file_name + ".json", "w") as output_log:
+with open("../logs/identification/" + file_name + ".json", "w") as output_log:
     output_log.write(json.dumps(results, indent = 4))
     output_log.close()
 
-with open("../logs/" + file_name + ".err.json", "w") as error_log:
+with open("../logs/identification/" + file_name + ".err.json", "w") as error_log:
     error_log.write(json.dumps(errors, indent = 4))
     error_log.close()
