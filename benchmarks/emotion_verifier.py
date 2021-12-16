@@ -95,7 +95,7 @@ def verify_emotion_thresholds(analyze_output, actual_emotion, threshold):
         (analyze_output["emotion"][dominant_emotion] / 100 ) > threshold
 
 def compute_emotions_against_thresholds(thresholds = [0]):
-    correct_emotion_count = dict();
+    correct_emotion_count = dict()
 
     current_combination = 1
 
@@ -108,7 +108,7 @@ def compute_emotions_against_thresholds(thresholds = [0]):
         except ValueError as e:
             print(e)
 
-            errors.add({
+            errors.append({
                 "error": e,
                 "img_path": line,
             })
