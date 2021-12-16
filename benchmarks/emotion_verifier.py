@@ -109,7 +109,7 @@ def compute_emotions_against_thresholds(thresholds = [0]):
             print(e)
 
             errors.append({
-                "error": e,
+                "error": str(e),
                 "img_path": line,
             })
 
@@ -145,7 +145,6 @@ def compute_emotions_against_thresholds(thresholds = [0]):
         
 
 results = compute_emotions_against_thresholds(args.thresholds)
-print(results)
 
 file_name = datetime.fromtimestamp(time.time()).strftime('%y_%m_%d_%H-%M-%S')
 
