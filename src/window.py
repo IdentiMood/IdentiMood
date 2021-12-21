@@ -39,9 +39,12 @@ class Window:
 
     def start_video_loop(self):
         _, self.frame = self.capture.read()
-        image = cv2.cvtColor(self.frame, cv2.COLOR_BGR2RGB)
+        decorated_frame = self._decorate_frame()
+
+        image = cv2.cvtColor(decorated_frame, cv2.COLOR_BGR2RGB)
         image = Image.fromarray(image)
         image = ImageTk.PhotoImage(image=image)
+
         self.canvas.imgtk = image
         self.canvas.configure(image=image)
         self.window.after(10, self.start_video_loop)
@@ -49,3 +52,24 @@ class Window:
     def _destroy_with_success(self):
         self.shot_button_pressed = True
         self.window.destroy()
+
+    def _decorate_frame(self):
+        height = len(self.frame)
+        width = len(self.frame[0])
+
+        ellipse_mask = cv2.numpy.zeros_like(self.frame)
+        ellipse_mask = cv2.ellipse(
+            ellipse_mask,
+            (int(width / 2), int(height / 2)),
+            (int(width / 3), int(height / 2)),
+            0,
+            0,
+            360,
+            (255, 255, 255),
+            -1,
+        )
+
+        outer_mask = cv2.bitwise_not(ellipse_mask)
+        outer_image = cv2.bitwise_and(self.frame, outer_mask)
+        ellipse_image = cv2.bitwise_and(self.frame, ellipse_mask)
+        return cv2.addWeighted(ellipse_image, 1.0, outer_image, 0.5, 1)
