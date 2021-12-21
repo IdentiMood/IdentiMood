@@ -1,0 +1,1 @@
+../datasets/TUTFS_X_KDEF/42/TD_RGB_E_5.jpg
