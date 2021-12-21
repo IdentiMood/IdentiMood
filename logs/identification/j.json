@@ -1,0 +1,244 @@
+{
+    "genuine_acceptances": {
+        "cosine": {
+            "VGG-Face": {
+                "0.1": 0,
+                "0.8": 0
+            },
+            "ArcFace": {
+                "0.1": 0,
+                "0.8": 0
+            }
+        },
+        "euclidean": {
+            "VGG-Face": {
+                "0.1": 0,
+                "0.8": 0
+            },
+            "ArcFace": {
+                "0.1": 0,
+                "0.8": 0
+            }
+        }
+    },
+    "genuine_rejections": {
+        "cosine": {
+            "VGG-Face": {
+                "0.1": 2,
+                "0.8": 0
+            },
+            "ArcFace": {
+                "0.1": 2,
+                "0.8": 0
+            }
+        },
+        "euclidean": {
+            "VGG-Face": {
+                "0.1": 2,
+                "0.8": 0
+            },
+            "ArcFace": {
+                "0.1": 2,
+                "0.8": 0
+            }
+        }
+    },
+    "false_acceptances": {
+        "cosine": {
+            "VGG-Face": {
+                "0.1": 0,
+                "0.8": 2
+            },
+            "ArcFace": {
+                "0.1": 0,
+                "0.8": 2
+            }
+        },
+        "euclidean": {
+            "VGG-Face": {
+                "0.1": 0,
+                "0.8": 2
+            },
+            "ArcFace": {
+                "0.1": 0,
+                "0.8": 2
+            }
+        }
+    },
+    "false_rejections": {
+        "cosine": {
+            "VGG-Face": {
+                "0.1": 0,
+                "0.8": 0
+            },
+            "ArcFace": {
+                "0.1": 0,
+                "0.8": 0
+            }
+        },
+        "euclidean": {
+            "VGG-Face": {
+                "0.1": 0,
+                "0.8": 0
+            },
+            "ArcFace": {
+                "0.1": 0,
+                "0.8": 0
+            }
+        }
+    },
+    "genuine_attempts": {
+        "cosine": {
+            "VGG-Face": {
+                "0.1": 0,
+                "0.8": 0
+            },
+            "ArcFace": {
+                "0.1": 0,
+                "0.8": 0
+            }
+        },
+        "euclidean": {
+            "VGG-Face": {
+                "0.1": 0,
+                "0.8": 0
+            },
+            "ArcFace": {
+                "0.1": 0,
+                "0.8": 0
+            }
+        }
+    },
+    "impostor_attempts": {
+        "cosine": {
+            "VGG-Face": {
+                "0.1": 2,
+                "0.8": 2
+            },
+            "ArcFace": {
+                "0.1": 2,
+                "0.8": 2
+            }
+        },
+        "euclidean": {
+            "VGG-Face": {
+                "0.1": 2,
+                "0.8": 2
+            },
+            "ArcFace": {
+                "0.1": 2,
+                "0.8": 2
+            }
+        }
+    },
+    "genuine_acceptance_rate": {
+        "cosine": {
+            "VGG-Face": {
+                "0.1": 0,
+                "0.8": 0
+            },
+            "ArcFace": {
+                "0.1": 0,
+                "0.8": 0
+            }
+        },
+        "euclidean": {
+            "VGG-Face": {
+                "0.1": 0,
+                "0.8": 0
+            },
+            "ArcFace": {
+                "0.1": 0,
+                "0.8": 0
+            }
+        }
+    },
+    "genuine_rejection_rate": {
+        "cosine": {
+            "VGG-Face": {
+                "0.1": 1.0,
+                "0.8": 0.0
+            },
+            "ArcFace": {
+                "0.1": 1.0,
+                "0.8": 0.0
+            }
+        },
+        "euclidean": {
+            "VGG-Face": {
+                "0.1": 1.0,
+                "0.8": 0.0
+            },
+            "ArcFace": {
+                "0.1": 1.0,
+                "0.8": 0.0
+            }
+        }
+    },
+    "false_acceptance_rate": {
+        "cosine": {
+            "VGG-Face": {
+                "0.1": 0.0,
+                "0.8": 1.0
+            },
+            "ArcFace": {
+                "0.1": 0.0,
+                "0.8": 1.0
+            }
+        },
+        "euclidean": {
+            "VGG-Face": {
+                "0.1": 0.0,
+                "0.8": 1.0
+            },
+            "ArcFace": {
+                "0.1": 0.0,
+                "0.8": 1.0
+            }
+        }
+    },
+    "false_rejection_rate": {
+        "cosine": {
+            "VGG-Face": {
+                "0.1": 0,
+                "0.8": 0
+            },
+            "ArcFace": {
+                "0.1": 0,
+                "0.8": 0
+            }
+        },
+        "euclidean": {
+            "VGG-Face": {
+                "0.1": 0,
+                "0.8": 0
+            },
+            "ArcFace": {
+                "0.1": 0,
+                "0.8": 0
+            }
+        }
+    },
+    "error_rate": {
+        "cosine": {
+            "VGG-Face": {
+                "0.1": 0.0,
+                "0.8": 1.0
+            },
+            "ArcFace": {
+                "0.1": 0.0,
+                "0.8": 1.0
+            }
+        },
+        "euclidean": {
+            "VGG-Face": {
+                "0.1": 0.0,
+                "0.8": 1.0
+            },
+            "ArcFace": {
+                "0.1": 0.0,
+                "0.8": 1.0
+            }
+        }
+    }
+}

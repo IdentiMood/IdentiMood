@@ -1,7 +1,5 @@
 import matplotlib.pyplot as plt
-import json
 import os
-import sys
 
 
 def plot(
@@ -44,6 +42,18 @@ def plot(
         plt.draw()
 
     plt.clf()
+
+# TODO finish to code this
+# take all needed params from outside!
+def __compute_threshold_FAR_FRR_plot(x_axis_list, y_axis_list):
+    plot(
+        x_axis_list,
+        y_axis_list,
+        [ "thresholds" ], [ "False Rejection Rate", "False Acceptance Rate" ],
+        [ "False Rejection Rate", "False Acceptance Rate" ],
+        "thresholds VS. FRR and FAR", show_plot, plot_name,
+        "linear", "linear"
+    )
 
 # TFF: x = thresholds, y = FRR, FAR
 def compute_threshold_FAR_FRR_plot(distance_metric_name, show_plot, file_name, results):
@@ -116,21 +126,4 @@ def compute_plots(show_plot, file_name):
 
         compute_DET_plot(metric, show_plot, file_name, results)
 
-json_path = sys.argv[1]
-
-# Opening JSON file
-f = open(json_path)
-
-# returns JSON object as
-# a dictionary
-results = json.load(f)
-
-# Closing file
-f.close()
-
-distance_metrics = list(results["genuine_acceptances"].keys())
-print(distance_metrics)
-
-thresholds = list(results["genuine_acceptances"][distance_metrics[0]].keys())
-
-compute_plots(bool(int(sys.argv[2])), "TODO add plot name")
+# compute_plots(bool(int(sys.argv[2])), "TODO add plot name")
