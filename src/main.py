@@ -3,6 +3,7 @@ import tempfile
 import json
 from utils import *
 from operations import verify_identity, verify_mood
+from window import Window
 import cv2
 
 
@@ -15,40 +16,29 @@ class App:
         self.claimed_identity = claimed_identity
 
     def show_photo_window(self, operation: int) -> (bool, bool):
-        aborted = False
+        window = Window(operation)
+        if window.shot_button_pressed:
+            return self.save_and_verify(operation, window.frame), False
+        return False, True
+
+    def save_and_verify(self, operation: int, frame) -> (bool, bool):
         verified = False
+        tmp = tempfile.NamedTemporaryFile(prefix="identimood", suffix=".jpg")
+        try:
+            cv2.imwrite(tmp.name, frame)
+            if operation == OPERATION_VERIFY_IDENTITY:
+                verified = verify_identity(
+                    tmp.name, claimed_identity, self.config["verify"]
+                )
+            elif operation == OPERATION_VERIFY_MOOD:
+                verified = verify_mood(tmp.name, claimed_identity, self.config["mood"])
+        except ValueError as e:
+            verified = False
+            print("Error while handling the probe.", e)
+        finally:
+            tmp.close()
 
-        video = cv2.VideoCapture(0)
-        while True:
-            _, frame = video.read()
-            cv2.imshow("Show your face", frame)
-
-            key = cv2.waitKey(1)
-            if key == KEY_ESC:
-                aborted = True
-                break
-            if key in (KEY_ENTER, KEY_SPACE):
-                tmp = tempfile.NamedTemporaryFile(prefix="identimood", suffix=".jpg")
-                try:
-                    cv2.imwrite(tmp.name, frame)
-                    if operation == OPERATION_VERIFY_IDENTITY:
-                        verified = verify_identity(
-                            tmp.name, claimed_identity, self.config["verify"]
-                        )
-                    elif operation == OPERATION_VERIFY_MOOD:
-                        verified = verify_mood(
-                            tmp.name, claimed_identity, self.config["mood"]
-                        )
-                    break
-                except ValueError as e:
-                    verified = False
-                    print("Error while handling the probe.", e)
-                finally:
-                    tmp.close()
-
-        video.release()
-        cv2.destroyAllWindows()
-        return verified, aborted
+        return verified
 
 
 def load_config():
