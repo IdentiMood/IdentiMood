@@ -1,3 +1,7 @@
+# macOS FS
+
+.DS_Store
+
 # Datasets folder
 
 datasets/
