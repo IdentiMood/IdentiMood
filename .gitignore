@@ -2,6 +2,11 @@
 
 .DS_Store
 
+# Non-notable plots
+
+plots/*
+!plots/notable/
+
 # Datasets folder
 
 datasets/
