@@ -3,7 +3,7 @@ import os
 
 
 def plot(
-    x_axis = None, y_axis = None,
+    x_axis = [None], y_axis = [None],
     x_label = "x - axis", y_label = "y - label", 
     line_label = [],
     plot_name = " ", 
@@ -30,12 +30,8 @@ def plot(
         plt.xticks(ticks_to_use)
         plt.yticks(ticks_to_use)
 
-    # TODO use zip
-    #      loop over zipped x_axis and y_axis
-    #      in theory, as it is now it's ok BUT it doesn't have error handling that zip would
-    #      provide
-    for i in range(0, len(y_axis)):
-        plt.plot(x_axis[i], y_axis[i], label = line_label[i])
+    for (x, y, l) in zip(x_axis, y_axis, line_label):
+        plt.plot(x, y, label = l)
 
     plt.legend()
 
