@@ -1,4 +1,5 @@
 {
+    "gallery_path": "./gallery",
     "verify": {
         "threshold": 0.3,
         "model_name": "VGG-Face",

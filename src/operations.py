@@ -1,8 +1,15 @@
 import os
+import sys
 import json
+import uuid
+import cv2
 from deepface import DeepFace
 
 GALLERY_PATH = "./gallery"
+
+
+def get_enrolled_identities() -> list:
+    return os.listdir(GALLERY_PATH)
 
 
 def get_gallery_templates(identity_claim: str) -> list:
@@ -19,6 +26,38 @@ def load_meta(identity_claim: str) -> dict:
     with open(meta_path, "r") as f:
         meta = json.load(f)
     return meta
+
+
+def save_template(frame, identity: str, preprocess=True):
+    if preprocess:
+        try:
+            frame = DeepFace.detectFace(frame)
+            frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+            frame = cv2.convertScaleAbs(frame, alpha=(255.0))
+        except ValueError as error:
+            print("Error while preprocessing the frame.", error, file=sys.stderr)
+
+    filename = str(uuid.uuid4()) + ".jpg"
+    basepath = os.path.join(GALLERY_PATH, identity)
+    if not os.path.exists(basepath):
+        os.makedirs(basepath)
+    path = os.path.join(basepath, filename)
+    cv2.imwrite(path, frame)
+
+
+def save_mood(identity: str, mood: str):
+    basepath = os.path.join(GALLERY_PATH, identity)
+    meta_path = os.path.join(GALLERY_PATH, identity, "meta.json")
+    if not os.path.exists(basepath):
+        os.makedirs(basepath)
+    if not os.path.exists(meta_path):
+        meta = _make_empty_meta()
+    else:
+        with open(meta_path, "r") as f:
+            meta = json.load(f)
+    meta["favorite_mood"] = mood
+    with open(meta_path, "w") as f:
+        f.write(json.dumps(meta))
 
 
 def verify_identity(probe_path: str, identity_claim: str, config: dict) -> bool:
@@ -49,3 +88,14 @@ def verify_mood(probe_path: str, identity_claim: str, config: dict) -> bool:
     )
 
     return result["emotion"][favorite_mood] >= config["threshold_percent"]
+
+
+def get_mood(probe_path: str, config: dict) -> str:
+    result = DeepFace.analyze(
+        probe_path, actions=["emotion"], detector_backend=config["detector_backend"]
+    )
+    return result["dominant_emotion"]
+
+
+def _make_empty_meta() -> object:
+    return {"name": "", "favorite_mood": ""}
