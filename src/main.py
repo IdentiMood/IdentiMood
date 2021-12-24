@@ -8,12 +8,17 @@ import cv2
 
 
 class App:
-    config = dict()
-    claimed_identity = ""
-
     def __init__(self, config, claimed_identity):
         self.config = config
         self.claimed_identity = claimed_identity
+
+    def authenticate(self) -> bool:
+        identity_verified, aborted = self.show_photo_window(OPERATION_VERIFY_IDENTITY)
+        if aborted:
+            return False
+
+        mood_verified, _ = self.show_photo_window(OPERATION_VERIFY_MOOD)
+        return identity_verified and mood_verified
 
     def show_photo_window(self, operation: int) -> (bool, bool):
         window = Window(operation)
@@ -28,10 +33,12 @@ class App:
             cv2.imwrite(tmp.name, frame)
             if operation == OPERATION_VERIFY_IDENTITY:
                 verified = verify_identity(
-                    tmp.name, claimed_identity, self.config["verify"]
+                    tmp.name, self.claimed_identity, self.config["verify"]
                 )
             elif operation == OPERATION_VERIFY_MOOD:
-                verified = verify_mood(tmp.name, claimed_identity, self.config["mood"])
+                verified = verify_mood(
+                    tmp.name, self.claimed_identity, self.config["mood"]
+                )
         except ValueError as e:
             verified = False
             print("Error while handling the probe.", e)
@@ -39,12 +46,6 @@ class App:
             tmp.close()
 
         return verified
-
-
-def load_config():
-    with open("./config.json", "r") as f:
-        config = json.load(f)
-    return config
 
 
 if __name__ == "__main__":
@@ -61,11 +62,7 @@ if __name__ == "__main__":
     opt = input("[y]/n: ")
 
     if opt == "" or opt == "y":
-        identity_verified, aborted = app.show_photo_window(OPERATION_VERIFY_IDENTITY)
-        if aborted:
-            exit(1)
-
-        mood_verified, _ = app.show_photo_window(OPERATION_VERIFY_MOOD)
-        print(f"Verified: {identity_verified and mood_verified}")
+        authenticated = app.authenticate()
+        print("Authenticated:", authenticated)
     else:
         exit(1)
