@@ -49,6 +49,8 @@ models_temp_key = list(json_content["genuine_acceptances"])[0]
 models = list(json_content["genuine_acceptances"][models_temp_key])
 
 thresholds = list(json_content["genuine_acceptances"][metrics[0]][models[0]])
+# list elements float conversion needed by MatPlotLib
+thresholds = [float(numeric_string) for numeric_string in thresholds]
 
 time_stamp = datetime.fromtimestamp(time.time()).strftime('%y_%m_%d_%H-%M-%S')
 
@@ -71,7 +73,7 @@ for metric in metrics:
             x_axis = [thresholds, thresholds],
             y_axis = [far, frr],
             x_label = ["thresholds"], y_label = ["FRR", "FAR"],
-            line_label = [ "False Rejection Rate", "False Acceptance Rate" ],
+            line_label = [ "False Acceptance Rate", "False Rejection Rate" ],
             plot_name = f"thresholds VS. FRR & FAR\nDistance metric: {metric}. Deep Learning model: {model}",
             # show_plot = args.show_plot,
             show_plot = True,
