@@ -68,12 +68,13 @@ for metric in metrics:
         # plotting:
         # threshold vs. FAR & FRR --> x = thresholds, y = FRR, FAR
         plot(
-            x_axis = [far, frr],
-            y_axis = [thresholds, thresholds],
-            x_label = "thresholds", y_label = "FRR, FAR",
+            x_axis = [thresholds, thresholds],
+            y_axis = [far, frr],
+            x_label = ["thresholds"], y_label = ["FRR", "FAR"],
             line_label = [ "False Rejection Rate", "False Acceptance Rate" ],
             plot_name = f"thresholds VS. FRR & FAR\nDistance metric: {metric}. Deep Learning model: {model}",
-            show_plot = args.show_plot,
+            # show_plot = args.show_plot,
+            show_plot = True,
             plot_file_full_path = plot_file_full_path,
             x_axis_scale = "linear", y_axis_scale = "linear"
         )
@@ -88,7 +89,7 @@ for metric in metrics:
         plot(
             x_axis = [far],
             y_axis = [gar],
-            x_label = "FAR", y_label = "GAR",
+            x_label = ["FAR"], y_label = ["GAR"],
             line_label = ["ROC"],
             plot_name = f"ROC\nDistance metric: {metric}. Deep Learning model: {model}",
             show_plot = args.show_plot,
@@ -104,7 +105,7 @@ for metric in metrics:
         plot(
             x_axis = [far],
             y_axis = [frr],
-            x_label = "FAR", y_label = "FRR",
+            x_label = ["FAR"], y_label = ["FRR"],
             line_label = ["DET"],
             plot_name = f"DET\nDistance metric: {metric}. Deep Learning model: {model}",
             show_plot = args.show_plot,
