@@ -14,17 +14,17 @@ def plot(
     x_axis_scale = "linear", y_axis_scale = "linear"
 ):
 
-    plt.title(plot_name)
-
     plt.xscale(x_axis_scale)
     plt.yscale(y_axis_scale)
 
     if (len(y_axis) == 2):
-        _, ax1 = plt.subplots()
+        fig, ax1 = plt.subplots()
         ax1.set_xlabel(x_label[0])
         ax1.set_ylabel(y_label[0])
         # so as the plotted line does NOT overlap the axis
         ax1.set_ylim(bottom = -0.005)
+        
+        fig.suptitle(plot_name, fontsize = 8)
 
         ax2 = ax1.twinx()
         ax2.set_ylabel(y_label[1])
@@ -32,6 +32,8 @@ def plot(
         ax2.set_ylim(bottom = -0.005)
 
     else:
+        plt.suptitle(plot_name, fontsize = 8)
+        
         plt.xlabel(x_label[0])
         plt.ylabel(y_label[0])
 
@@ -40,7 +42,7 @@ def plot(
 
     plt.legend()
 
-    if (plot_file_full_path): plt.savefig(plot_file_full_path)
+    if (plot_file_full_path): plt.savefig(plot_file_full_path, dpi = 300)
 
     if (show_plot):
         plt.show()
