@@ -1,0 +1,10 @@
+[
+    {
+        "error": "Face could not be detected. Please confirm that the picture is a face photo or consider to set enforce_detection param to False.",
+        "img_path": "../datasets/TUTFS_X_KDEF/42/TD_RGB_E_5.jpg"
+    },
+    {
+        "error": "Face could not be detected. Please confirm that the picture is a face photo or consider to set enforce_detection param to False.",
+        "img_path": "../datasets/TUTFS_X_KDEF/112/TD_RGB_E_5.jpg"
+    }
+]
