@@ -21,6 +21,7 @@ parser.add_argument("-de", "--euclidean", help="Test with the euclidean distance
 parser.add_argument("-del2", "--euclidean_l2", help="Test with the euclidean_l2 distance metric", action="store_true")
 parser.add_argument("-m", "--models-mask", help="Binary mask to decide what Deep Learning models to use for face verification. Mask index meaning: 0 --> VGG, 1 --> OpenFace, 2--> Facenet, 3 --> Facenet512, 4 --> Facebook DeepFace, 5 --> DeepID, 6 --> Dlib, 7 --> ArcFace", type=str)
 parser.add_argument("-v", "--verbose", help="Print iteration results", action="store_true")
+parser.add_argument("-b", "--begin-at-line", help="Line of input file to begin from", type=int, default = 0)
 args = parser.parse_args()
 
 models_list = [ 
@@ -71,13 +72,15 @@ def verify(distance_score, threshold):
 
 with open(args.input) as file:
     lines = file.readlines()
+    lines = lines[args.begin_at_line : ]
     lines = [line.rstrip() for line in lines]
     if args.shuffle:
         random.shuffle(lines)
     if args.limit is not None:
-        lines = lines[:args.limit]
+        lines = lines[ : args.limit]
     total_combinations = (len(lines)**2 - len(lines)) * len(args.thresholds) * \
         len(distance_metrics) * len(models_dict.keys())
+
 
 genuine_acceptances = dict()
 genuine_rejections = dict()
