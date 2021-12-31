@@ -32,8 +32,6 @@ for sub_dir in ["/threshold_vs_frr_far", "/roc", "/det"]:
     if not os.path.exists(args.plot_save_dir + sub_dir):
         os.makedirs(args.plot_save_dir + sub_dir)
 
-print(args)
-
 # Opening JSON file
 f = open(args.input_json)
 
@@ -42,6 +40,11 @@ json_content = json.load(f)
 
 # Closing file
 f.close()
+
+try:
+    dataset_name = json_content["dataset_name"]
+except KeyError as e:
+    dataset_name = "UNKOWN DATASET NAME!"
 
 metrics = list(json_content["genuine_acceptances"])
 
@@ -74,9 +77,8 @@ for metric in metrics:
             y_axis = [far, frr],
             x_label = ["thresholds"], y_label = ["FRR", "FAR"],
             line_label = [ "False Acceptance Rate", "False Rejection Rate" ],
-            plot_name = f"thresholds VS. FRR & FAR\nDistance metric: {metric}. Deep Learning model: {model}",
-            # show_plot = args.show_plot,
-            show_plot = True,
+            plot_name = f"thresholds VS. FRR & FAR\nDataset: {dataset_name}\nDistance metric: {metric}. Deep Learning model: {model}",
+            show_plot = args.show_plot,
             plot_file_full_path = plot_file_full_path,
             x_axis_scale = "linear", y_axis_scale = "linear"
         )
@@ -93,7 +95,7 @@ for metric in metrics:
             y_axis = [gar],
             x_label = ["FAR"], y_label = ["GAR"],
             line_label = ["ROC"],
-            plot_name = f"ROC\nDistance metric: {metric}. Deep Learning model: {model}",
+            plot_name = f"ROC\nDataset: {dataset_name}\nDistance metric: {metric}. Deep Learning model: {model}",
             show_plot = args.show_plot,
             plot_file_full_path = plot_file_full_path,
             x_axis_scale = "linear", y_axis_scale = "linear"
@@ -109,7 +111,7 @@ for metric in metrics:
             y_axis = [frr],
             x_label = ["FAR"], y_label = ["FRR"],
             line_label = ["DET"],
-            plot_name = f"DET\nDistance metric: {metric}. Deep Learning model: {model}",
+            plot_name = f"DET\nDataset: {dataset_name}\nDistance metric: {metric}. Deep Learning model: {model}",
             show_plot = args.show_plot,
             plot_file_full_path = plot_file_full_path,
             # TODO DET should take logarithmic scale for both axes

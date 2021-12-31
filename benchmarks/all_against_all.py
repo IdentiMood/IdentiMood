@@ -24,6 +24,8 @@ parser.add_argument("-v", "--verbose", help="Print iteration results", action="s
 parser.add_argument("-b", "--begin-at-line", help="Line of input file to begin from", type=int, default = 0)
 args = parser.parse_args()
 
+dataset_name = args.input.split('_list_')[1].split('.txt')[0]
+
 models_list = [ 
     'VGG-Face', 'OpenFace', 'Facenet', 'Facenet512', 'DeepFace', 'DeepID',
 	'Dlib', 'ArcFace'
@@ -329,6 +331,8 @@ print("Total execution time (s)       : ", end_time - start_time)
 print("Average single match execution time (s): ", (end_time - start_time) / total_combinations / len(args.thresholds))
 
 file_name = datetime.fromtimestamp(time.time()).strftime('%y_%m_%d_%H-%M-%S')
+
+results["dataset_name"] = dataset_name
 
 with open("../logs/identification/" + file_name + ".json", "w") as output_log:
     output_log.write(json.dumps(results, indent = 4))
