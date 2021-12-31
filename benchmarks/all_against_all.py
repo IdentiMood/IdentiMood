@@ -178,7 +178,7 @@ def perform_all_against_all(distance_metrics = [], thresholds = [], verbose = Fa
                         print(e, lines[first_identity_index], lines[second_identity_index])
 
                         errors.append({
-                            "error": e,
+                            "error": str(e),
                             "img1_path": lines[first_identity_index],
                             "img2_path": lines[second_identity_index],
                         })
