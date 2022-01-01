@@ -333,6 +333,9 @@ print("Average single match execution time (s): ", (end_time - start_time) / tot
 file_name = datetime.fromtimestamp(time.time()).strftime('%y_%m_%d_%H-%M-%S')
 
 results["dataset_name"] = dataset_name
+# no need to export the entire list, since it can be computed from threshold_range!
+args.thresholds = list()
+results["args"] = vars(args)
 
 with open("../logs/identification/" + file_name + ".json", "w") as output_log:
     output_log.write(json.dumps(results, indent = 4))
