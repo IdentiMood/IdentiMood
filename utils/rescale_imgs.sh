@@ -1,1 +1,1 @@
-find $1 -maxdepth 1 -iname "*.jpg" | xargs -L1 -I{} convert -resize $2% "{}" "{}"
+find $1 -iname "*.jpg" | xargs -L1 -I{} convert -verbose -resize $2% "{}" "{}"
