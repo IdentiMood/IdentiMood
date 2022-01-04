@@ -1,0 +1,12 @@
+../datasets/lookalikes-balanced/mag/ma1.png
+../datasets/lookalikes-balanced/mai/ma1-impostor.png
+../datasets/lookalikes-balanced/mbg/mb1.png
+../datasets/lookalikes-balanced/mbi/mb1-impostor.jpg
+../datasets/lookalikes-balanced/wmg/wm1.png
+../datasets/lookalikes-balanced/wmi/wm1-impostor.png
+../datasets/lookalikes-balanced/fwi/fw1-impostor.jpg
+../datasets/lookalikes-balanced/fwg/fw1.png
+../datasets/lookalikes-balanced/fag/fa1.png
+../datasets/lookalikes-balanced/fai/fa1-impostor.jpeg
+../datasets/lookalikes-balanced/fbg/fb1.png
+../datasets/lookalikes-balanced/fbi/fb1-impostor.jpg
