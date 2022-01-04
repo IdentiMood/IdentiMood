@@ -1,0 +1,7 @@
+{
+    "opencv": 8026,
+    "ssd": 6566,
+    "dlib": 8917,
+    "mtcnn": 5372,
+    "retinaface": 2629
+}
