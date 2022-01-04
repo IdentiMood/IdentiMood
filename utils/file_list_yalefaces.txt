@@ -83,7 +83,6 @@
 ../datasets/yalefaces/subject01/subject01.surprised.png.JPEG
 ../datasets/yalefaces/subject01/subject01.sleepy.png.JPEG
 ../datasets/yalefaces/subject01/subject01.normal.png.JPEG
-../datasets/yalefaces/subject01/subject01.JPEG.png.JPEG
 ../datasets/yalefaces/subject01/subject01.glasses.png.JPEG
 ../datasets/yalefaces/subject01/subject01.happy.png.JPEG
 ../datasets/yalefaces/subject06/subject06.wink.png.JPEG
