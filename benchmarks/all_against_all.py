@@ -5,6 +5,7 @@ import json
 import time
 from datetime import datetime
 import numpy as np
+import sys
 
 DEFAULT_MODELS_MASK = "10000000"
 
@@ -23,6 +24,7 @@ parser.add_argument("-m", "--models-mask", help="Binary mask to decide what Deep
 parser.add_argument("-v", "--verbose", help="Print iteration results", action="store_true")
 parser.add_argument("-b", "--begin-at-line", help="Line of input file to begin from", type=int, default = 0)
 args = parser.parse_args()
+args_str = " ".join(sys.argv)
 
 dataset_name = args.input.split('_list_')[1].split('.txt')[0]
 
@@ -242,7 +244,8 @@ def perform_all_against_all(distance_metrics = [], thresholds = [], verbose = Fa
                                 "genuine_rejection_rate": genuine_rejection_rate,
                                 "false_acceptance_rate": false_acceptance_rate,
                                 "false_rejection_rate": false_rejection_rate,
-                                "error_rate": error_rate
+                                "error_rate": error_rate,
+                                "args": args_str
                             }
 
                             print("Storing checkpoint json...")
@@ -277,7 +280,8 @@ def perform_all_against_all(distance_metrics = [], thresholds = [], verbose = Fa
         "genuine_rejection_rate": genuine_rejection_rate,
         "false_acceptance_rate": false_acceptance_rate,
         "false_rejection_rate": false_rejection_rate,
-        "error_rate": error_rate
+        "error_rate": error_rate,
+        "args": args_str
     }
 
 def print_recognition_metrics():
@@ -334,9 +338,6 @@ print("Average single match execution time (s): ", (end_time - start_time) / tot
 file_name = datetime.fromtimestamp(time.time()).strftime('%y_%m_%d_%H-%M-%S')
 
 results["dataset_name"] = dataset_name
-# no need to export the entire list, since it can be computed from threshold_range!
-args.thresholds = list()
-results["args"] = vars(args)
 
 with open("../logs/identification/" + file_name + ".json", "w") as output_log:
     output_log.write(json.dumps(results, indent = 4))
