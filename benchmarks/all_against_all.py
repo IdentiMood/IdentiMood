@@ -104,13 +104,8 @@ results = dict()
 
 def perform_all_against_all(distance_metrics = [], thresholds = [], verbose = False):
 
-    # estimated_exec_time_seconds = total_combinations * 0.2
-    # print("total combinations: ", total_combinations)
-    # print("should take: ", estimated_exec_time_seconds, "seconds")
-    # print("should take: ", estimated_exec_time_seconds / 60, "minutes")
-    # print("should take: ", estimated_exec_time_seconds / 3600, "hours")
-    # print("should take: ", estimated_exec_time_seconds / (3600 * 24), "days")
-    # exit()
+    checkpoint_trigger = int(total_combinations / 15)
+    checkpoints_count = 0
 
     current_combination = 1
 
@@ -232,7 +227,7 @@ def perform_all_against_all(distance_metrics = [], thresholds = [], verbose = Fa
                                 false_rejections[metric][model][threshold_str]
                             ) / (ga + ia)
 
-                        if ((current_combination % 4000) == 0):
+                        if ((current_combination % checkpoint_trigger) == 0):
                             temp_json = {
                                 "genuine_acceptances": genuine_acceptances,
                                 "genuine_rejections": genuine_rejections,
@@ -248,7 +243,12 @@ def perform_all_against_all(distance_metrics = [], thresholds = [], verbose = Fa
                                 "args": args_str
                             }
 
-                            print("Storing checkpoint json...")
+                            print(
+                                "Storing checkpoint json number", 
+                                checkpoints_count, "..."
+                            )
+
+                            checkpoints_count += 1
 
                             file_name = datetime.fromtimestamp(time.time()).strftime('%y_%m_%d_%H-%M-%S') + "_" + str(current_combination)
                             with open("../logs/identification/checkpoints/" + file_name + ".json", "w") as output_log:
