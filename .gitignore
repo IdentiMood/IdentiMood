@@ -7,6 +7,10 @@
 plots/*
 !plots/notable/
 
+# Checkpoints
+
+logs/*/checkpoints/
+
 # Datasets folder
 
 datasets/
