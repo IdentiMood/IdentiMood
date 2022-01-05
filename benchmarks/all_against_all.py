@@ -171,7 +171,8 @@ def perform_all_against_all(distance_metrics = [], thresholds = [], verbose = Fa
                         result = DeepFace.verify(
                             img1_path = lines[first_identity_index],
                             img2_path = lines[second_identity_index],
-                            model = models_dict[model]
+                            model = models_dict[model],
+                            distance_metric = metric
                         )
                     except ValueError as e:
                         # happens when the img cannot be loaded
