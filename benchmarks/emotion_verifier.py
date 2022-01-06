@@ -63,7 +63,9 @@ analyze_output_hardcoded = {
     },
 }
 
-TUTFS_emotion_codes = ["neutral", "neutral", "happy", "neutral", "surprise", "neutral"]
+TUTFS_emotion_codes = [
+    "neutral", "neutral", "happy", "neutral", "surprise", "neutral"
+]
 
 KDEF_emotion_codes = {
     "AF": "fear",
@@ -75,6 +77,11 @@ KDEF_emotion_codes = {
     "SU": "surprise",
 }
 
+yalefaces_neutral_cases = [
+    "glasses", "leftlight", "centerlight", "rightlight", "noglasses", "normal", 
+    "sleepy", "wink", "gif"
+]
+
 with open(args.input) as file:
     lines = file.readlines()
     lines = [line.rstrip() for line in lines]
@@ -82,13 +89,26 @@ with open(args.input) as file:
         lines = lines[: args.limit]
     total_lines = len(lines) * len(args.thresholds)
 
+def yalefaces_actual_emotion(file_name):
+    emotion = file_name.split(".")[-3]
+
+    if any(x in emotion for x in yalefaces_neutral_cases):
+        return "neutral"
+    elif emotion == "surprised":
+        return "surprise"
+    else:
+        return emotion
 
 def is_TUTFS(folder_name):
     return folder_name.isdigit()
 
+def is_yalefaces(folder_name):
+    return "subject" in folder_name
 
-def verify_emotion_thresholds(analyze_output, actual_emotion, threshold):
-    dominant_emotion = analyze_output["dominant_emotion"]
+
+def verify_emotion_thresholds(analyze_output, actual_emotion, threshold):    
+    # current check just checks whether DeepFace returned a score for the actual 
+    # emotion that is higher than threshold
     return (analyze_output["emotion"][actual_emotion] / 100) >= threshold
 
 
@@ -107,12 +127,7 @@ def compute_emotions_against_thresholds(thresholds=[0]):
         except ValueError as e:
             print(e)
 
-            errors.append(
-                {
-                    "error": str(e),
-                    "img_path": line,
-                }
-            )
+            errors.append({"error": str(e), "img_path": line})
 
             continue
 
@@ -120,6 +135,8 @@ def compute_emotions_against_thresholds(thresholds=[0]):
 
         if is_TUTFS(folder_name):
             actual_emotion = TUTFS_emotion_codes[int(os.path.basename(line)[-5])]
+        elif is_yalefaces(folder_name):
+            actual_emotion = yalefaces_actual_emotion(line)
         else:
             actual_emotion = KDEF_emotion_codes[os.path.basename(line)[-7:-5]]
 
@@ -127,6 +144,7 @@ def compute_emotions_against_thresholds(thresholds=[0]):
             verified = verify_emotion_thresholds(
                 analyze_output, actual_emotion, threshold
             )
+
             if verified:
                 errors_count[threshold]["correct"] += 1
             else:
@@ -141,7 +159,7 @@ def compute_emotions_against_thresholds(thresholds=[0]):
                 [{round(current_combination/total_lines * 100, 2)}%]"
             )
             print(
-                "----------------------------------------------------------------------------------------"
+                "----------------------------------------------------------"
             )
 
             current_combination += 1
