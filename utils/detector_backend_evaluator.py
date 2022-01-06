@@ -19,7 +19,7 @@ models['emotion'] = DeepFace.build_model('Emotion')
 for detector in detector_backends:
     errors[detector] = 0
 
-with open("file_list_COMPLETE_short.txt") as file:
+with open("file_list_COMPLETE.txt") as file:
     lines = file.readlines()
     lines = [line.rstrip() for line in lines]
 
