@@ -9,6 +9,12 @@ import json
 
 errors = []
 
+DEFAULT_MODELS_MASK = "10000000"
+
+models_list = [ 
+    'VGG-Face', 'OpenFace', 'Facenet', 'Facenet512', 'DeepFace', 'DeepID',
+	'Dlib', 'ArcFace'
+]
 
 class NpEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -39,15 +45,39 @@ parser.add_argument(
         Args: start, stop, number of values",
     type=float,
 )
+parser.add_argument(
+    "-m", "--models-mask", 
+    help="Binary mask to decide what Deep Learning models to use for face\
+    verification. Mask index meaning: 0 --> VGG, 1 --> OpenFace, 2--> Facenet,\
+    3 --> Facenet512, 4 --> Facebook DeepFace, 5 --> DeepID, 6 --> Dlib, 7 -->\
+    ArcFace", type=str
+)
 
 args = parser.parse_args()
 
 if args.threshold_range:
     args.thresholds = np.linspace(
-        args.threshold_range[0], args.threshold_range[1], int(args.threshold_range[2])
+        args.threshold_range[0], args.threshold_range[1], 
+        int(args.threshold_range[2])
     )
 else:
     args.thresholds = [0]
+
+if not (set(args.models_mask).issubset({'0', '1'}) and bool(args.models_mask)):
+    args.models_mask = DEFAULT_MODELS_MASK
+    print("Provided models mask not binary, defaulting to", DEFAULT_MODELS_MASK)
+
+if len(args.models_mask) != len(models_list):
+    args.models_mask = DEFAULT_MODELS_MASK
+    print(
+        "Provided models mask not complete, defaulting to", DEFAULT_MODELS_MASK
+    )
+
+models_dict = {}
+
+for (i, j) in zip(list(range(0, len(args.models_mask))), models_list):
+    if args.models_mask[i] == "1": 
+        models_dict[j] = DeepFace.build_model(j)
 
 
 analyze_output_hardcoded = {
@@ -87,7 +117,7 @@ with open(args.input) as file:
     lines = [line.rstrip() for line in lines]
     if args.limit is not None:
         lines = lines[: args.limit]
-    total_lines = len(lines) * len(args.thresholds)
+    total_lines = len(lines) * len(args.thresholds) * len(models_dict.keys())
 
 def yalefaces_actual_emotion(file_name):
     emotion = file_name.split(".")[-3]
@@ -109,6 +139,9 @@ def is_yalefaces(folder_name):
 def verify_emotion_thresholds(analyze_output, actual_emotion, threshold):    
     # current check just checks whether DeepFace returned a score for the actual 
     # emotion that is higher than threshold
+
+    # DeepFace emotion score must be divided by 100 because is returned as 
+    # percentage
     return (analyze_output["emotion"][actual_emotion] / 100) >= threshold
 
 
@@ -117,52 +150,61 @@ def compute_emotions_against_thresholds(thresholds=[0]):
 
     current_combination = 1
 
-    for threshold in thresholds:
-        errors_count[threshold] = {"correct": 0, "wrong": 0}
-
     for line in lines:
 
-        try:
-            analyze_output = DeepFace.analyze(line, ["emotion"])
-        except ValueError as e:
-            print(e)
+        for model in models_dict.keys():
 
-            errors.append({"error": str(e), "img_path": line})
+            try:
+                analyze_output = DeepFace.analyze(line, ["emotion"])
+            except ValueError as e:
+                print(e)
 
-            continue
+                errors.append({"error": str(e), "img_path": line})
 
-        folder_name = os.path.basename(os.path.dirname(line))
+                continue
 
-        if is_TUTFS(folder_name):
-            actual_emotion = TUTFS_emotion_codes[int(os.path.basename(line)[-5])]
-        elif is_yalefaces(folder_name):
-            actual_emotion = yalefaces_actual_emotion(line)
-        else:
-            actual_emotion = KDEF_emotion_codes[os.path.basename(line)[-7:-5]]
+            errors_count[model] = dict()
 
-        for threshold in thresholds:
-            verified = verify_emotion_thresholds(
-                analyze_output, actual_emotion, threshold
-            )
+            for threshold in thresholds:
+                errors_count[model][threshold] = {"correct": 0, "wrong": 0}
 
-            if verified:
-                errors_count[threshold]["correct"] += 1
+            folder_name = os.path.basename(os.path.dirname(line))
+
+            if is_TUTFS(folder_name):
+                actual_emotion = TUTFS_emotion_codes[
+                    int(os.path.basename(line)[-5])
+                ]
+            elif is_yalefaces(folder_name):
+                actual_emotion = yalefaces_actual_emotion(line)
             else:
-                errors_count[threshold]["wrong"] += 1
+                actual_emotion = KDEF_emotion_codes[
+                    os.path.basename(line)[-7:-5]
+                ]
 
-            print(f"Analyzing file:  {line}")
-            print(f"DeepFace says:   {analyze_output['dominant_emotion']}")
-            print(f"Should be:       {actual_emotion}")
-            print(f"Threshold:       {threshold}")
-            print(
-                f"Progress:        {current_combination}/{total_lines} \
-                [{round(current_combination/total_lines * 100, 2)}%]"
-            )
-            print(
-                "----------------------------------------------------------"
-            )
+            for threshold in thresholds:
+                verified = verify_emotion_thresholds(
+                    analyze_output, actual_emotion, threshold
+                )
 
-            current_combination += 1
+                if verified:
+                    errors_count[model][threshold]["correct"] += 1
+                else:
+                    errors_count[model][threshold]["wrong"] += 1
+
+                print(f"Analyzing file: {line}")
+                print(f"Model:          {model}")
+                print(f"DeepFace says:  {analyze_output['dominant_emotion']}")
+                print(f"Should be:      {actual_emotion}")
+                print(f"Threshold:      {threshold}")
+                print(
+                    f"Progress:             {current_combination}/{total_lines} \
+                    [{round(current_combination/total_lines * 100, 2)}%]"
+                )
+                print(
+                    "----------------------------------------------------------"
+                )
+
+                current_combination += 1
 
     return errors_count
 
