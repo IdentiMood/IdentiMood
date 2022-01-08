@@ -27,7 +27,7 @@ if args.input_json == None:
     exit(-1)
 
 if args.plot_save_dir == None:
-    args.plot_save_dir = "./plots/emotion"
+    args.plot_save_dir = "./plots/emotion/"
 
 
 if not os.path.exists(args.plot_save_dir):
@@ -52,10 +52,13 @@ thresholds_rounded = [round(float(threshold), 2) for threshold in thresholds]
 
 x_axis = [thresholds_rounded for model in models]
 
-y_axis = dict(list())
+y_axis_correct = dict(list())
+y_axis_wrong = dict(list())
 
 for model in models:
-    y_axis[model] = list()
+    
+    y_axis_correct[model] = list()
+    y_axis_wrong[model] = list()
 
     for threshold in thresholds:
         
@@ -65,22 +68,67 @@ for model in models:
 
         positive_ratio = num_correct / num_tot * 100
         
-        y_axis[model].append(positive_ratio)
+        # y_axis_correct[model].append(num_correct)
+        # y_axis_wrong[model].append(num_wrong)
+        y_axis_correct[model].append(num_correct / num_tot * 100)
+        y_axis_wrong[model].append(num_wrong / num_tot * 100)
 
-line_label = [model for model in models]
+line_label_correct = [model + " (correct emotion recognition)" for model in models]
+line_label_wrong = [model + " (wrong emotion recognition)" for model in models]
 
-plot_file_full_path = args.plot_save_dir  + "_" + time_stamp + ".png"
+plot_file_full_path = args.plot_save_dir + time_stamp + ".png"
 
-for (x, y, l) in zip(x_axis, [y_axis[model] for model in models], line_label):
-    plt.plot(x, y, label = l)
+fig, ax1 = plt.subplots()
 
-plt.xlabel("thresholds")
-plt.ylabel("% of correct emotion prediction")
+ax1.set_xlabel("thresholds")
+ax1.set_ylabel("% of correct emotion idenfications (higher is better)")
 
-plt.legend()
+ax2 = ax1.twinx()
+ax2.set_ylabel("% of wrong emotion idenfications (lower is better)")
 
-plt.show()
-plt.draw()
+fig.suptitle(
+    "thresholds VS. correct & wrong emotion recognition ratios"
+)
+plt.title("Dataset: TUTFS x KDEF x yalefaces")
+
+color_correct = [
+    "#9DA1AA", "#1C1C1C", "#89AC76", "#8B8C7A", "#CC0605", "#AF2B1E", "#F44611", 
+    "#2E3A23"
+]
+
+color_wrong = [
+    "#015D52", "#00BB2D", "#C7B446", "#8E402A", "#2F4538", "#6D6552", "#49678D",
+    "#6C6874"
+]
+
+for (x_axis, y_correct, y_wrong, label_correct, label_wrong, color_correct, color_wrong) in zip(x_axis, [y_axis_correct[model] for model in models], [y_axis_wrong[model] for model in models], line_label_correct, line_label_wrong, color_correct, color_wrong):
+
+    ax1.plot(x_axis, y_correct, label = label_correct, color = color_correct)
+    # ax1.legend()
+    ax1.legend(
+        loc='upper left', 
+        ncol=1,
+        bbox_to_anchor=(0.075, 1),
+        fancybox=True, 
+        shadow=False
+    )
+    
+    ax2.plot(x_axis, y_wrong, label = label_wrong, color = color_wrong)
+    # ax2.legend()
+    ax2.legend(
+        loc='upper right', 
+        ncol=1, 
+        bbox_to_anchor=(0.925, 1),
+        fancybox=True, 
+        shadow=False
+    )
+
+if (plot_file_full_path): 
+    plt.savefig(plot_file_full_path, dpi = 300)
+
+if (args.show_plot):
+        plt.show()
+        plt.draw()
 
 plt.clf()
 
