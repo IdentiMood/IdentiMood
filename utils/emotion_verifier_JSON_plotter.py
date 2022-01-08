@@ -1,4 +1,3 @@
-from plotter import plot
 import json
 import argparse
 import os
@@ -73,7 +72,9 @@ for model in models:
         y_axis_correct[model].append(num_correct / num_tot * 100)
         y_axis_wrong[model].append(num_wrong / num_tot * 100)
 
-line_label_correct = [model + " (correct emotion recognition)" for model in models]
+line_label_correct = [
+    model + " (correct emotion recognition)" for model in models
+]
 line_label_wrong = [model + " (wrong emotion recognition)" for model in models]
 
 plot_file_full_path = args.plot_save_dir + time_stamp + ".png"
@@ -101,7 +102,14 @@ color_wrong = [
     "#6C6874"
 ]
 
-for (x_axis, y_correct, y_wrong, label_correct, label_wrong, color_correct, color_wrong) in zip(x_axis, [y_axis_correct[model] for model in models], [y_axis_wrong[model] for model in models], line_label_correct, line_label_wrong, color_correct, color_wrong):
+for (
+    x_axis, y_correct, y_wrong, label_correct, label_wrong, color_correct, 
+    color_wrong
+) in zip(
+    x_axis, [y_axis_correct[model] for model in models], 
+    [y_axis_wrong[model] for model in models], line_label_correct, 
+    line_label_wrong, color_correct, color_wrong
+):
 
     ax1.plot(x_axis, y_correct, label = label_correct, color = color_correct)
     # ax1.legend()
