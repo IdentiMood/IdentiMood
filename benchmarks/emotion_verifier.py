@@ -146,7 +146,14 @@ def verify_emotion_thresholds(analyze_output, actual_emotion, threshold):
 
 
 def compute_emotions_against_thresholds(thresholds=[0]):
+    
     errors_count = dict()
+
+    for model in models_dict.keys():
+        errors_count[model] = dict()
+
+        for threshold in thresholds:
+            errors_count[model][threshold] = {"correct": 0, "wrong": 0}
 
     current_combination = 1
 
@@ -162,11 +169,6 @@ def compute_emotions_against_thresholds(thresholds=[0]):
                 errors.append({"error": str(e), "img_path": line})
 
                 continue
-
-            errors_count[model] = dict()
-
-            for threshold in thresholds:
-                errors_count[model][threshold] = {"correct": 0, "wrong": 0}
 
             folder_name = os.path.basename(os.path.dirname(line))
 
