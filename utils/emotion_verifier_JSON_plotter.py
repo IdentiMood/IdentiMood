@@ -47,7 +47,6 @@ time_stamp = datetime.fromtimestamp(time.time()).strftime('%y_%m_%d_%H-%M-%S')
 models = list(json_content.keys())
 
 thresholds = list(json_content[models[0]].keys())
-
 # needed by the amazing MatPlotLib, in order to show readable x ticks :)
 thresholds_rounded = [round(float(threshold), 2) for threshold in thresholds]
 
@@ -59,12 +58,7 @@ for model in models:
     y_axis[model] = list()
 
     for threshold in thresholds:
-        # json_content[model][threshold]["positive_ratio"] = json_content[model][threshold]["correct"] / ( json_content[model][threshold]["correct"] + json_content[model][threshold]["wrong"] ) * 100
         
-        # print(json_content[model][threshold], json_content[model][threshold]["positive_ratio"])
-        
-        # y_axis[model].append(json_content[model][threshold]["positive_ratio"])
-
         num_correct = json_content[model][threshold]["correct"]
         num_wrong = json_content[model][threshold]["wrong"]
         num_tot = num_correct + num_wrong
@@ -72,11 +66,6 @@ for model in models:
         positive_ratio = num_correct / num_tot * 100
         
         y_axis[model].append(positive_ratio)
-
-# for model in models:
-#     y_axis[model] = list()
-#     for threshold in thresholds:
-#         y_axis[model].append(json_content[model][threshold]["positive_ratio"])
 
 line_label = [model for model in models]
 
