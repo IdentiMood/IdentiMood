@@ -2,6 +2,7 @@ from matplotlib import ticker
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator, FixedFormatter, FixedLocator, MultipleLocator
 import numpy as np
+from shapely.geometry import LineString
 
 
 def plot(
@@ -13,6 +14,8 @@ def plot(
     plot_file_full_path = None,
     x_axis_scale = "linear", y_axis_scale = "linear"
 ):
+
+    bool_plot_intersection = False
 
     plt.xscale(x_axis_scale)
     plt.yscale(y_axis_scale)
@@ -31,6 +34,20 @@ def plot(
         # so as the plotted line does NOT overlap the axis
         ax2.set_ylim(bottom = -0.005)
 
+        l1 = list(zip(x_axis[0], y_axis[0]))
+        l2 = list(zip(x_axis[0], y_axis[1]))
+
+        line1 = LineString(l1)
+        line2 = LineString(l2)
+
+        intersection = line1.intersection(line2)
+        
+        eer_vertical_line_y = np.linspace(0, intersection.y, 100)
+        eer_vertical_line_x = np.empty(100)
+        eer_vertical_line_x.fill(intersection.x)
+                
+        bool_plot_intersection = True
+
     else:
         plt.suptitle(plot_name, fontsize = 8)
         
@@ -39,6 +56,20 @@ def plot(
 
     for (x, y, l) in zip(x_axis, y_axis, line_label):
         plt.plot(x, y, label = l)
+
+    if bool_plot_intersection:
+        
+        plt.plot(
+            eer_vertical_line_x, eer_vertical_line_y,
+            linestyle='dashed', color = "magenta",
+            label = "threshold leading to Equal Error Rate"
+        )
+        
+        plt.plot(
+            intersection.x, intersection.y, marker = "o", markersize = 6, 
+            markeredgecolor = "black", markerfacecolor = "black", 
+            color = "black", label = "Equal Error Rate"
+        )
 
     plt.legend()
 
