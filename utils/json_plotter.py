@@ -5,6 +5,7 @@ import time
 from datetime import datetime
 import os
 import argparse
+import numpy as np
 
 parser = argparse.ArgumentParser()
 
@@ -51,10 +52,6 @@ metrics = list(json_content["genuine_acceptances"])
 models_temp_key = list(json_content["genuine_acceptances"])[0]
 models = list(json_content["genuine_acceptances"][models_temp_key])
 
-thresholds = list(json_content["genuine_acceptances"][metrics[0]][models[0]])
-# list elements float conversion needed by MatPlotLib
-thresholds = [float(numeric_string) for numeric_string in thresholds]
-
 time_stamp = datetime.fromtimestamp(time.time()).strftime('%y_%m_%d_%H-%M-%S')
 
 # plotting:
@@ -64,17 +61,31 @@ time_stamp = datetime.fromtimestamp(time.time()).strftime('%y_%m_%d_%H-%M-%S')
 for metric in metrics:
     for model in models: 
         far = list(json_content["false_acceptance_rate"][metric][model].values())
+        far_np = np.array(far)
+        far_max_val = far_np.max()
+        far_max_ind = far_np.argmax()
 
         frr = list(json_content["false_rejection_rate"][metric][model].values())
+        frr_np = np.array(frr)
+        frr_min_val = frr_np.min()
+        frr_min_ind = frr_np.argmin()
+
+        far_frr_ind = max(far_max_ind, frr_min_ind) + 1
+
+        thresholds = list(
+            json_content["false_acceptance_rate"][metric][model].keys()
+        )
+        thresholds_np = np.array(thresholds).astype(np.float64)[:far_frr_ind]
 
         plot_file_full_path = args.plot_save_dir + "/threshold_vs_frr_far/" + \
             metric + "_" + model + "_" + time_stamp + ".png"
-
+        
         # plotting:
         # threshold vs. FAR & FRR --> x = thresholds, y = FRR, FAR
         plot(
-            x_axis = [thresholds, thresholds],
-            y_axis = [far, frr],
+            # x_axis = [thresholds, thresholds],
+            x_axis = [thresholds_np, thresholds_np],
+            y_axis = [far[:far_frr_ind], frr[:far_frr_ind]],
             x_label = ["thresholds"], y_label = ["FRR (lower is better)", "FAR (lower is better)"],
             line_label = [ "False Acceptance Rate", "False Rejection Rate" ],
             plot_name = f"thresholds VS. FRR & FAR\nDataset: {dataset_name}\nDistance metric: {metric}. Deep Learning model: {model}",
@@ -84,6 +95,11 @@ for metric in metrics:
         )
 
         gar = list(json_content["genuine_acceptance_rate"][metric][model].values())
+        gar_np = np.array(gar)
+        gar_max_val = gar_np.max()
+        gar_max_ind = gar_np.argmax()
+
+        gar_far_ind = max(gar_max_ind, far_max_ind) + 1
 
         plot_file_full_path = args.plot_save_dir + "/roc/" + metric + "_" + \
             model + "_" + time_stamp + ".png"
@@ -91,8 +107,8 @@ for metric in metrics:
         # plotting:
         # ROC --> x = FAR, y = GAR
         plot(
-            x_axis = [far],
-            y_axis = [gar],
+            x_axis = [far[:gar_far_ind]],
+            y_axis = [gar[: gar_far_ind]],
             x_label = ["FAR (lower is better)"], y_label = ["GAR (higher is better)"],
             line_label = ["ROC"],
             plot_name = f"ROC\nDataset: {dataset_name}\nDistance metric: {metric}. Deep Learning model: {model}",
@@ -107,8 +123,8 @@ for metric in metrics:
         # plotting:
         # DET (logarithmic scale) --> x = FAR, y = FRR
         plot(
-            x_axis = [far],
-            y_axis = [frr],
+            x_axis = [far[:far_frr_ind]],
+            y_axis = [frr[:far_frr_ind]],
             x_label = ["FAR (lower is better)"], y_label = ["FRR (lower is better)"],
             line_label = ["DET"],
             plot_name = f"DET\nDataset: {dataset_name}\nDistance metric: {metric}. Deep Learning model: {model}",
