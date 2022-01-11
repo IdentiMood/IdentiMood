@@ -12,8 +12,11 @@ def plot(
     plot_name = " ", 
     show_plot = True,
     plot_file_full_path = None,
-    x_axis_scale = "linear", y_axis_scale = "linear"
+    x_axis_scale = "linear", y_axis_scale = "linear",
+    legend_font_size = "medium"
 ):
+
+    plt.rc('legend', fontsize = legend_font_size)
 
     bool_plot_intersection = False
 
@@ -45,6 +48,14 @@ def plot(
         eer_vertical_line_y = np.linspace(0, intersection.y, 100)
         eer_vertical_line_x = np.empty(100)
         eer_vertical_line_x.fill(intersection.x)
+
+        eer_threshold = (round(intersection.x, 2))
+        custom_ticks = np.append(ax1.get_xticks(), eer_threshold)
+        sorted_custom_ticks = np.sort(custom_ticks)
+
+        ax1.set_xticks(sorted_custom_ticks)
+        ax1.tick_params(axis = 'x',labelrotation = 45)
+        plt.tight_layout()
                 
         bool_plot_intersection = True
 
@@ -62,7 +73,7 @@ def plot(
         plt.plot(
             eer_vertical_line_x, eer_vertical_line_y,
             linestyle='dashed', color = "magenta",
-            label = "threshold leading to Equal Error Rate"
+            label = "Threshold to get EER"
         )
         
         plt.plot(
@@ -80,3 +91,4 @@ def plot(
         plt.draw()
 
     plt.clf()
+    plt.close()
