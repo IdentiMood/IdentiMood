@@ -42,10 +42,21 @@ json_content = json.load(f)
 # Closing file
 f.close()
 
+print(args.input_json)
+
 try:
     dataset_name = json_content["dataset_name"]
 except KeyError as e:
-    dataset_name = "UNKOWN DATASET NAME!"
+    print("Can't find dataset name, exiting...")
+    exit(-1)
+
+if dataset_name == "ExtendedYaleB_accepted_by_deepface":
+    print("Invalid dataset, exiting...")
+    exit(-1)
+
+# beautify dataset names
+dataset_name = dataset_name.replace("_balanced", " (balanced)")
+dataset_name = dataset_name.replace("_accepted_by_deepface", "")
 
 metrics = list(json_content["genuine_acceptances"])
 
@@ -60,6 +71,12 @@ time_stamp = datetime.fromtimestamp(time.time()).strftime('%y_%m_%d_%H-%M-%S')
 # DET (logarithmic scale) --> x = FAR, y = FRR
 for metric in metrics:
     for model in models: 
+
+        # it does NOT make any sense to evaluate a model with its training set
+        if "VGG-Face" in model and "VGG-Face" in dataset_name:
+            print("SKIPPING", model, dataset_name, "combo")
+            continue
+
         far = list(json_content["false_acceptance_rate"][metric][model].values())
         far_np = np.array(far)
         far_max_val = far_np.max()
@@ -91,7 +108,8 @@ for metric in metrics:
             plot_name = f"thresholds VS. FRR & FAR\nDataset: {dataset_name}\nDistance metric: {metric}. Deep Learning model: {model}",
             show_plot = args.show_plot,
             plot_file_full_path = plot_file_full_path,
-            x_axis_scale = "linear", y_axis_scale = "linear"
+            x_axis_scale = "linear", y_axis_scale = "linear",
+            legend_font_size = "small"
         )
 
         gar = list(json_content["genuine_acceptance_rate"][metric][model].values())
@@ -114,7 +132,8 @@ for metric in metrics:
             plot_name = f"ROC\nDataset: {dataset_name}\nDistance metric: {metric}. Deep Learning model: {model}",
             show_plot = args.show_plot,
             plot_file_full_path = plot_file_full_path,
-            x_axis_scale = "linear", y_axis_scale = "linear"
+            x_axis_scale = "linear", y_axis_scale = "linear",
+            legend_font_size = "medium"
         )
 
         plot_file_full_path = args.plot_save_dir + "/det/" + metric + "_" + \
@@ -132,5 +151,6 @@ for metric in metrics:
             plot_file_full_path = plot_file_full_path,
             # TODO DET should take logarithmic scale for both axes
             # find a way to set them
-            x_axis_scale = "linear", y_axis_scale = "linear"
+            x_axis_scale = "linear", y_axis_scale = "linear",
+            legend_font_size = "medium"
         )
