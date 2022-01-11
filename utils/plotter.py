@@ -1,6 +1,5 @@
 from matplotlib import ticker
 import matplotlib.pyplot as plt
-from matplotlib.ticker import MaxNLocator, FixedFormatter, FixedLocator, MultipleLocator
 import numpy as np
 from shapely.geometry import LineString
 
