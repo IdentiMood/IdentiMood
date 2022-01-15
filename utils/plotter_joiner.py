@@ -22,14 +22,18 @@ def checkArgs(args):
     if not args.metric in metrics:
         msg = f"Metric {args.metric} not supported"
         raise Exception(msg)
-    if not args.model_name.lower() in models_list_lower:
-        msg = f"Model {args.model_name.lower()} not supported"
-        raise Exception(msg)
-    else:
-        args.model_name = models_list[models_list_lower.index(args.model_name.lower())]
     if not args.curve_type in curveType:
         msg = f"Curve {args.curve_type} not supported"
         raise Exception(msg)
+    if "*" in args.models_name:
+        args.models_name = models_list
+        return
+    for x in range(len(args.models_name)):
+        if not args.models_name[x].lower() in models_list_lower:
+            msg = f"Model {args.models_name[x].lower()} not supported"
+            raise Exception(msg)
+        else:
+            args.models_name[x] = models_list[models_list_lower.index(args.models_name[x].lower())]
 
 def loadJson(path):
     f = open(path)
@@ -81,7 +85,7 @@ parser.add_argument("files", nargs="+", type=str)
 parser.add_argument("-o", "--output", help="File containing the dataset's file paths")
 parser.add_argument("-m", "--metric", help="cosine, euclidean, euclidean_l2", type=str, required=True)
 parser.add_argument("-ct", "--curve-type", help="roc, det, fvf", type=str, required=True)
-parser.add_argument("-mn", "--model-name", help="VGG-Face, OpenFace, Facenet, Facenet512, DeepFace, DeepID, Dlib, ArcFace", type=str, required=True)
+parser.add_argument("-mn", "--models-name", nargs="+", help="VGG-Face, OpenFace, Facenet, Facenet512, DeepFace, DeepID, Dlib, ArcFace, *(all)", type=str, required=True)
 parser.add_argument("-s", "--show-plot", help = "Whether to show the plots as they are computed", action="store_true")
 parser.add_argument("-dw", "--dont-worry", help = "Suppress wornings", action="store_true")
 
@@ -102,18 +106,19 @@ json_contents = list(map(loadJson, files))
 
 for index in range(len(json_contents)):
     obj = json_contents[index]
-    try:
-        if args.curve_type == "roc":
-            rocPlotter(obj, args.metric, args.model_name)
-        elif args.curve_type == "det":
-            detPlotter(obj, args.metric, args.model_name)
-        elif args.curve_type == "fvf":
-            farFrrPlotter(obj, args.metric, args.model_name)
-    except KeyError as e:
-        if (args.dont_worry):
-            continue
-        msg = f'{e} key doesn\'t exist on {files[index]}'
-        warnings.warn(msg)
+    for model in args.models_name:
+        try:
+            if args.curve_type == "roc":
+                rocPlotter(obj, args.metric, model)
+            elif args.curve_type == "det":
+                detPlotter(obj, args.metric, model)
+            elif args.curve_type == "fvf":
+                farFrrPlotter(obj, args.metric, model)
+        except KeyError as e:
+            if (args.dont_worry):
+                continue
+            msg = f'{e} key doesn\'t exist on {files[index]}'
+            warnings.warn(msg)
 
 if args.output:
     plt.savefig(args.output, dpi = 300)
