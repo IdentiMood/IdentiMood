@@ -85,6 +85,7 @@ parser.add_argument("files", nargs="+", type=str)
 parser.add_argument("-o", "--output", help="File containing the dataset's file paths")
 parser.add_argument("-m", "--metric", help="cosine, euclidean, euclidean_l2", type=str, required=True)
 parser.add_argument("-ct", "--curve-type", help="roc, det, fvf", type=str, required=True)
+parser.add_argument("-ds", "--dataset", help="cosine, euclidean, euclidean_l2", type=str)
 parser.add_argument("-mn", "--models-name", nargs="+", help="VGG-Face, OpenFace, Facenet, Facenet512, DeepFace, DeepID, Dlib, ArcFace, *(all)", type=str, required=True)
 parser.add_argument("-s", "--show-plot", help = "Whether to show the plots as they are computed", action="store_true")
 parser.add_argument("-dw", "--dont-worry", help = "Suppress wornings", action="store_true")
@@ -103,6 +104,12 @@ if [] in files:
 files = list(set([el for lst in files for el in lst]))
 
 json_contents = list(map(loadJson, files))
+
+if args.dataset:
+    json_contents = list(filter(lambda x: "dataset_name" in x and args.dataset == x["dataset_name"], json_contents))
+    if json_contents == []:
+        msg = f"Dataset {args.dataset} not found"
+        raise Exception(msg)
 
 for index in range(len(json_contents)):
     obj = json_contents[index]
