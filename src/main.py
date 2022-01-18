@@ -13,6 +13,10 @@ class App:
         self.claimed_identity = claimed_identity
         self.operations = Operations(config)
 
+        if not self.operations.is_user_enrolled(claimed_identity):
+            print(f"User {claimed_identity} is not enrolled.", file=sys.stderr)
+            sys.exit(1)
+
     def authenticate(self) -> bool:
         identity_verified, aborted = self.show_photo_window(OPERATION_VERIFY_IDENTITY)
         if aborted:
@@ -49,12 +53,7 @@ class App:
 
 if __name__ == "__main__":
     config = load_config()
-
-    if len(sys.argv) == 1:
-        claimed_identity = "me"
-    else:
-        claimed_identity = sys.argv[1]
-
+    claimed_identity = get_identity(sys.argv)
     app = App(load_config(), claimed_identity)
 
     print("Is it really you? Please confirm your identity.")

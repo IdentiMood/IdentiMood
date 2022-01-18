@@ -1,19 +1,18 @@
 # macOS FS
-
 .DS_Store
 
 # Non-notable plots
-
 plots/*
 !plots/notable/
 
 # Checkpoints
-
 logs/*/checkpoints/
 
 # Datasets folder
-
 datasets/
+
+# Sample gallery
+gallery/
 
 
 # Byte-compiled / optimized / DLL files

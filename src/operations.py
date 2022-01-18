@@ -14,6 +14,9 @@ class Operations:
     def get_enrolled_identities(self) -> list:
         return os.listdir(self.gallery_path)
 
+    def is_user_enrolled(self, identity: str) -> bool:
+        return identity in self.get_enrolled_identities()
+
     def get_gallery_templates(self, identity_claim: str) -> list:
         base_path = os.path.join(self.gallery_path, identity_claim)
         files = []
@@ -85,6 +88,9 @@ class Operations:
                 )
             else:
                 results.append(result)
+
+        if len(results) == 0:
+            return False
 
         results.sort(key=lambda r: r["distance"])
         return results[0]["distance"] < self.config["verify"]["threshold"]

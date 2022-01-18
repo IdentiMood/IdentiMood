@@ -1,6 +1,11 @@
 import sys
 import cv2
-from utils import OPERATION_ENROLLMENT_MOOD, OPERATION_ENROLLMENT_IDENTITY, load_config
+from utils import (
+    OPERATION_ENROLLMENT_MOOD,
+    OPERATION_ENROLLMENT_IDENTITY,
+    load_config,
+    get_identity,
+)
 from operations import Operations
 from window import Window
 from main import App
@@ -63,10 +68,5 @@ class Enroller:
 
 if __name__ == "__main__":
     config = load_config()
-
-    if len(sys.argv) == 1:
-        identity = "me"
-    else:
-        identity = sys.argv[1]
-
+    identity = get_identity(sys.argv)
     enroller = Enroller()

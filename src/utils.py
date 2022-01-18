@@ -1,4 +1,6 @@
 import json
+import os
+import pwd
 
 KEY_ESC = 27
 KEY_ENTER = 32
@@ -28,3 +30,10 @@ def load_config():
     with open("./config.json", "r") as f:
         config = json.load(f)
     return config
+
+
+def get_identity(argv: list) -> str:
+    if len(argv) == 1:
+        # return the currently logged-in user
+        return pwd.getpwuid(os.getuid()).pw_name
+    return argv[1]
