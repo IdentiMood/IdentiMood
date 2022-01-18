@@ -60,39 +60,55 @@ def save_mood(identity: str, mood: str):
         f.write(json.dumps(meta))
 
 
-def verify_identity(probe_path: str, identity_claim: str, config: dict) -> bool:
+def verify_identity(probe, identity_claim: str, config: dict) -> bool:
     files = get_gallery_templates(identity_claim)
     results = []
     for template in files:
-        print(f"Verifying {probe_path} against template {template}...")
-        result = DeepFace.verify(
-            img1_path=probe_path,
-            img2_path=template,
-            model_name=config["model_name"],
-            detector_backend=config["detector_backend"],
-            distance_metric=config["distance_metric"],
-            normalization=config["normalization"],
-        )
-        results.append(result)
+        print(f"Verifying probe against template {template}...")
+        try:
+            result = DeepFace.verify(
+                img1_path=probe,
+                img2_path=template,
+                model_name=config["model_name"],
+                detector_backend=config["detector_backend"],
+                distance_metric=config["distance_metric"],
+                normalization=config["normalization"],
+            )
+        except ValueError as error:
+            print(
+                "Error while handling the probe or gallery template.",
+                error,
+                file=sys.stderr,
+            )
+        except AttributeError as error:
+            # happens when the loaded img is a "NoneType" and NumPy operations fail
+            print("Error while handling the gallery template.", error, file=sys.stderr)
 
+        results.append(result)
     results.sort(key=lambda r: r["distance"])
     return results[0]["distance"] < config["threshold"]
 
 
-def verify_mood(probe_path: str, identity_claim: str, config: dict) -> bool:
+def detect_face(probe, config: dict):
+    return DeepFace.detectFace(probe, detector_backend=config["detector_backend"])
+
+
+def verify_mood(probe, identity_claim: str, config: dict) -> bool:
     favorite_mood = load_meta(identity_claim)["favorite_mood"]
 
-    print(f"Finding {probe_path}'s mood")
+    print("Finding the probe's mood")
     result = DeepFace.analyze(
-        probe_path, actions=["emotion"], detector_backend=config["detector_backend"]
+        probe,
+        actions=["emotion"],
+        detector_backend=config["detector_backend"],
     )
 
     return result["emotion"][favorite_mood] >= config["threshold_percent"]
 
 
-def get_mood(probe_path: str, config: dict) -> str:
+def get_mood(probe, config: dict) -> str:
     result = DeepFace.analyze(
-        probe_path, actions=["emotion"], detector_backend=config["detector_backend"]
+        probe, actions=["emotion"], detector_backend=config["detector_backend"]
     )
     return result["dominant_emotion"]
 

@@ -2,7 +2,7 @@ import sys
 import tempfile
 import json
 from utils import *
-from operations import verify_identity, verify_mood
+from operations import verify_identity, verify_mood, detect_face
 from window import Window
 import cv2
 
@@ -23,27 +23,27 @@ class App:
     def show_photo_window(self, operation: int) -> (bool, bool):
         window = Window(operation)
         if window.shot_button_pressed:
-            return self.save_and_verify(operation, window.frame), False
+            return self.handle_probe(operation, window.frame), False
         return False, True
 
-    def save_and_verify(self, operation: int, frame) -> (bool, bool):
+    def handle_probe(self, operation: int, frame) -> (bool, bool):
         verified = False
-        tmp = tempfile.NamedTemporaryFile(prefix="identimood", suffix=".jpg")
         try:
-            cv2.imwrite(tmp.name, frame)
-            if operation == OPERATION_VERIFY_IDENTITY:
-                verified = verify_identity(
-                    tmp.name, self.claimed_identity, self.config["verify"]
-                )
-            elif operation == OPERATION_VERIFY_MOOD:
-                verified = verify_mood(
-                    tmp.name, self.claimed_identity, self.config["mood"]
-                )
-        except ValueError as e:
-            verified = False
-            print("Error while handling the probe.", e)
-        finally:
-            tmp.close()
+            detect_face(frame, self.config["verify"])
+        except ValueError as error:
+            print(
+                "Error while handling the probe.",
+                error,
+                file=sys.stderr,
+            )
+            return False
+
+        if operation == OPERATION_VERIFY_IDENTITY:
+            verified = verify_identity(
+                frame, self.claimed_identity, self.config["verify"]
+            )
+        elif operation == OPERATION_VERIFY_MOOD:
+            verified = verify_mood(frame, self.claimed_identity, self.config["mood"])
 
         return verified
 
