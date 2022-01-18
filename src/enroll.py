@@ -2,15 +2,16 @@ import sys
 import tempfile
 import cv2
 from utils import OPERATION_ENROLLMENT_MOOD, OPERATION_ENROLLMENT_IDENTITY, load_config
-from operations import get_mood, save_mood, save_template, get_enrolled_identities
+from operations import Operations
 from window import Window
 from main import App
 
 
 class Enroller:
     def __init__(self):
-        self.gallery_path = config["gallery_path"]
-        if identity in get_enrolled_identities():
+        self.operations = Operations(config)
+
+        if identity in self.operations.get_enrolled_identities():
             authenticated = self._ask_authentication()
             if not authenticated:
                 print("Authentication failed", file=sys.stderr)
@@ -32,8 +33,8 @@ class Enroller:
             print("Authentication failed", file=sys.stderr)
             exit(1)
 
-        save_template(frame_identity, identity, preprocess=True)
-        save_mood(identity, mood)
+        self.operations.save_template(frame_identity, identity, preprocess=True)
+        self.operations.save_mood(identity, mood)
 
     def show_window(self, operation: int):
         window = Window(operation)
@@ -46,7 +47,7 @@ class Enroller:
         mood = None
         try:
             cv2.imwrite(tmp.name, frame)
-            mood = get_mood(tmp.name, config["mood"])
+            mood = self.operations.get_mood(tmp.name)
         except ValueError as e:
             print("Error while handling the probe.", e, file=sys.stderr)
         finally:
