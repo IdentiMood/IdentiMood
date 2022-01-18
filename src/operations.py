@@ -83,8 +83,9 @@ class Operations:
                 print(
                     "Error while handling the gallery template.", error, file=sys.stderr
                 )
+            else:
+                results.append(result)
 
-            results.append(result)
         results.sort(key=lambda r: r["distance"])
         return results[0]["distance"] < self.config["verify"]["threshold"]
 
