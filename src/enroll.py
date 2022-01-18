@@ -1,5 +1,4 @@
 import sys
-import tempfile
 import cv2
 from utils import OPERATION_ENROLLMENT_MOOD, OPERATION_ENROLLMENT_IDENTITY, load_config
 from operations import Operations
@@ -43,15 +42,12 @@ class Enroller:
         return None, True
 
     def extract_mood(self, frame) -> str:
-        tmp = tempfile.NamedTemporaryFile(prefix="identimood", suffix=".jpg")
         mood = None
         try:
-            cv2.imwrite(tmp.name, frame)
-            mood = self.operations.get_mood(tmp.name)
+            mood = self.operations.get_mood(frame)
         except ValueError as e:
             print("Error while handling the probe.", e, file=sys.stderr)
-        finally:
-            tmp.close()
+            mood = None
 
         return mood
 
