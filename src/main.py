@@ -1,10 +1,12 @@
 import sys
-import tempfile
-import json
-from utils import *
 from operations import Operations
 from window import Window
-import cv2
+from utils import (
+    OPERATION_VERIFY_IDENTITY,
+    OPERATION_VERIFY_MOOD,
+    load_config,
+    get_identity,
+)
 
 
 class App:
@@ -67,15 +69,13 @@ class App:
 
 
 if __name__ == "__main__":
-    config = load_config()
-    claimed_identity = get_identity(sys.argv)
-    app = App(load_config(), claimed_identity)
+    app = App(load_config(), get_identity(sys.argv))
 
     print("Is it really you? Please confirm your identity.")
     opt = input("[y]/n: ")
 
-    if opt == "" or opt == "y":
+    if opt in ("", "y"):
         authenticated = app.authenticate()
         print("Authenticated:", authenticated)
     else:
-        exit(1)
+        sys.exit(1)

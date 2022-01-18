@@ -30,7 +30,7 @@ def load_config():
     """
     Loads the configuration from the ./config.json file
     """
-    with open("./config.json", "r") as f:
+    with open("./config.json", "r", encoding="utf8") as f:
         config = json.load(f)
     return config
 

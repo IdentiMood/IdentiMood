@@ -45,7 +45,7 @@ class Operations:
         (gallery/<identity>/meta.json).
         """
         meta_path = os.path.join(self.gallery_path, identity_claim, "meta.json")
-        with open(meta_path, "r") as f:
+        with open(meta_path, "r", encoding="utf8") as f:
             meta = json.load(f)
         return meta
 
@@ -82,10 +82,10 @@ class Operations:
         if not os.path.exists(meta_path):
             meta = self._make_empty_meta()
         else:
-            with open(meta_path, "r") as f:
+            with open(meta_path, "r", encoding="utf8") as f:
                 meta = json.load(f)
         meta["favorite_mood"] = mood
-        with open(meta_path, "w") as f:
+        with open(meta_path, "w", encoding="utf8") as f:
             f.write(json.dumps(meta))
 
     def verify_identity(self, probe, identity_claim: str) -> bool:
