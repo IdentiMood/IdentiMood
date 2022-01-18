@@ -7,17 +7,32 @@ from deepface import DeepFace
 
 
 class Operations:
+    """
+    Operations is the IdentiMood class that handles the recognition operations.
+    """
+
     def __init__(self, config):
         self.gallery_path = config["gallery_path"]
         self.config = config
+        self.is_debug = config["debug"]
 
     def get_enrolled_identities(self) -> list:
+        """
+        Returns the list of the names of the enrolled users,
+        by listing the directories in the gallery.
+        """
         return os.listdir(self.gallery_path)
 
     def is_user_enrolled(self, identity: str) -> bool:
+        """
+        Returns whether the given identity is enrolled or not.
+        """
         return identity in self.get_enrolled_identities()
 
     def get_gallery_templates(self, identity_claim: str) -> list:
+        """
+        Returns the list of gallery templates (.jpg or .png) belonging to the given identity
+        """
         base_path = os.path.join(self.gallery_path, identity_claim)
         files = []
         for f in os.listdir(base_path):
@@ -26,12 +41,22 @@ class Operations:
         return files
 
     def load_meta(self, identity_claim: str) -> dict:
+        """
+        Returns the dictionary describing the metadata of the given identity
+        (gallery/<identity>/meta.json).
+        """
         meta_path = os.path.join(self.gallery_path, identity_claim, "meta.json")
-        with open(meta_path, "r") as f:
+        with open(meta_path, "r", encoding="utf8") as f:
             meta = json.load(f)
         return meta
 
     def save_template(self, frame, identity: str, preprocess=True):
+        """
+        Saves the current frame into an image, to be used as
+        gallery template for the given identity.
+        If preprocess is True, then the frame will be preprocessed
+        before saving (face detection, alignment)
+        """
         if preprocess:
             try:
                 frame = DeepFace.detectFace(frame)
@@ -48,6 +73,9 @@ class Operations:
         cv2.imwrite(path, frame)
 
     def save_mood(self, identity: str, mood: str):
+        """
+        Saves the given mood metadata for the given identity.
+        """
         basepath = os.path.join(self.gallery_path, identity)
         meta_path = os.path.join(self.gallery_path, identity, "meta.json")
         if not os.path.exists(basepath):
@@ -55,17 +83,24 @@ class Operations:
         if not os.path.exists(meta_path):
             meta = self._make_empty_meta()
         else:
-            with open(meta_path, "r") as f:
+            with open(meta_path, "r", encoding="utf8") as f:
                 meta = json.load(f)
         meta["favorite_mood"] = mood
-        with open(meta_path, "w") as f:
+        with open(meta_path, "w", encoding="utf8") as f:
             f.write(json.dumps(meta))
 
     def verify_identity(self, probe, identity_claim: str) -> bool:
+        """
+        Matches the given probe against the templates of the given identity.
+        Returns True if the score of the best match is below the configured
+        acceptance threshold.
+        """
         files = self.get_gallery_templates(identity_claim)
         results = []
         for template in files:
-            print(f"Verifying probe against template {template}...")
+            if self.is_debug:
+                print(f"Verifying probe against template {template}...")
+
             try:
                 result = DeepFace.verify(
                     img1_path=probe,
@@ -96,14 +131,25 @@ class Operations:
         return results[0]["distance"] < self.config["verify"]["threshold"]
 
     def detect_face(self, probe):
+        """
+        Returns the cropped and aligned image, from the given probe.
+        """
         return DeepFace.detectFace(
             probe, detector_backend=self.config["verify"]["detector_backend"]
         )
 
     def verify_mood(self, probe, identity_claim: str) -> bool:
+        """
+        Matches the mood extracted from the given probe
+        against the one configured for the given identity claim.
+        Returns True if the score of the saved mood is higher than the
+        configured threshold.
+        """
         favorite_mood = self.load_meta(identity_claim)["favorite_mood"]
 
-        print("Finding the probe's mood")
+        if self.is_debug:
+            print("Finding the probe's mood")
+
         result = DeepFace.analyze(
             probe,
             actions=["emotion"],
@@ -115,6 +161,9 @@ class Operations:
         )
 
     def get_mood(self, probe) -> str:
+        """
+        Extracts and returns the mood from the given probe.
+        """
         result = DeepFace.analyze(
             probe,
             actions=["emotion"],
@@ -123,4 +172,7 @@ class Operations:
         return result["dominant_emotion"]
 
     def _make_empty_meta(self) -> object:
+        """
+        Returns a dictionary representing an empty meta.json file
+        """
         return {"name": "", "favorite_mood": ""}

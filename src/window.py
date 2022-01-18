@@ -5,6 +5,13 @@ from utils import OPERATIONS_WINDOW_LABELS, OPERATIONS_WINDOW_TITLES
 
 
 class Window:
+    """
+    Window is the IdentiMood class that creates and handles Tkinter windows,
+    in order to acquire pictures of the user from the webcam.
+    Window automatically creates and configures the appropriate widgets,
+    based on the recognition operation to perform.
+    """
+
     def __init__(self, operation: int):
         self.window = tk.Tk()
         self.window.title(OPERATIONS_WINDOW_TITLES[operation])
@@ -38,6 +45,9 @@ class Window:
         self.window.mainloop()
 
     def start_video_loop(self):
+        """
+        Starts the video capture from OpenCV and displays each frame on the canvas
+        """
         _, self.frame = self.capture.read()
         decorated_frame = self._decorate_frame()
 
@@ -50,10 +60,18 @@ class Window:
         self.window.after(10, self.start_video_loop)
 
     def _destroy_with_success(self):
+        """
+        Closes the current Window with a "success" state,
+        meaning that the user has clicked the "shot" button.
+        """
         self.shot_button_pressed = True
         self.window.destroy()
 
     def _decorate_frame(self):
+        """
+        Draws an ellipse at the center and puts a dark overlay on the outside,
+        in order to guide the user into an acceptable position to perform the acquisition.
+        """
         height = len(self.frame)
         width = len(self.frame[0])
 

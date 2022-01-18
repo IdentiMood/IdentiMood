@@ -27,12 +27,22 @@ OPERATIONS_WINDOW_TITLES = [
 
 
 def load_config():
-    with open("./config.json", "r") as f:
+    """
+    Loads the configuration from the ./config.json file
+    """
+    with open("./config.json", "r", encoding="utf8") as f:
         config = json.load(f)
     return config
 
 
 def get_identity(argv: list) -> str:
+    """
+    Gets the identity to user for the recognition operations.
+    If a string has been supplied (eg. `python3 main.py john`), then it will be used.
+    Else, the current logged-in user will be used.
+
+    This function is supposed to be called by passing to it the argument vector (sys.argv).
+    """
     if len(argv) == 1:
         # return the currently logged-in user
         return pwd.getpwuid(os.getuid()).pw_name

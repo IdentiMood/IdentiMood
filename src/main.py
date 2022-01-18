@@ -1,13 +1,19 @@
 import sys
-import tempfile
-import json
-from utils import *
 from operations import Operations
 from window import Window
-import cv2
+from utils import (
+    OPERATION_VERIFY_IDENTITY,
+    OPERATION_VERIFY_MOOD,
+    load_config,
+    get_identity,
+)
 
 
 class App:
+    """
+    App is the main coordinator for the IdentiMood application.
+    """
+
     def __init__(self, config, claimed_identity):
         self.config = config
         self.claimed_identity = claimed_identity
@@ -18,6 +24,9 @@ class App:
             sys.exit(1)
 
     def authenticate(self) -> bool:
+        """
+        Starts the authentication procedure, by verifying identity and mood in two separate steps.
+        """
         identity_verified, aborted = self.show_photo_window(OPERATION_VERIFY_IDENTITY)
         if aborted:
             return False
@@ -26,12 +35,20 @@ class App:
         return identity_verified and mood_verified
 
     def show_photo_window(self, operation: int) -> (bool, bool):
+        """
+        Shows a Window to shot the picture.
+        Returns a tuple (identity_verified, operation_has_been_aborted).
+        """
         window = Window(operation)
         if window.shot_button_pressed:
             return self.handle_probe(operation, window.frame), False
         return False, True
 
     def handle_probe(self, operation: int, frame) -> (bool, bool):
+        """
+        Calls the given recognition operation on the given frame.
+        Returns True if the result of the operation was successful.
+        """
         verified = False
         try:
             self.operations.detect_face(frame)
@@ -52,15 +69,16 @@ class App:
 
 
 if __name__ == "__main__":
-    config = load_config()
-    claimed_identity = get_identity(sys.argv)
-    app = App(load_config(), claimed_identity)
+    app = App(load_config(), get_identity(sys.argv))
 
     print("Is it really you? Please confirm your identity.")
     opt = input("[y]/n: ")
 
-    if opt == "" or opt == "y":
+    if opt in ("", "y"):
         authenticated = app.authenticate()
-        print("Authenticated:", authenticated)
+        if not authenticated:
+            print("Authentication failed.", file=sys.stderr)
+            sys.exit(1)
+        print("Authenticated.")
     else:
-        exit(1)
+        sys.exit(1)
