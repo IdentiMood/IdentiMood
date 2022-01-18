@@ -12,6 +12,10 @@ from main import App
 
 
 class Enroller:
+    """
+    Enroller is the IdentiMood class that handles the enrollment operations.
+    """
+
     def __init__(self):
         self.operations = Operations(config)
 
@@ -41,12 +45,19 @@ class Enroller:
         self.operations.save_mood(identity, mood)
 
     def show_window(self, operation: int):
+        """
+        Shows a Window to shot the picture.
+        Returns a tuple (shot_frame, operation_has_been_aborted).
+        """
         window = Window(operation)
         if window.shot_button_pressed:
             return window.frame, False
         return None, True
 
     def extract_mood(self, frame) -> str:
+        """
+        Returns the extracted mood form the given frame
+        """
         mood = None
         try:
             mood = self.operations.get_mood(frame)
@@ -57,6 +68,10 @@ class Enroller:
         return mood
 
     def _ask_authentication(self):
+        """
+        Waits for the user's input, to know if they want to
+        add another template for an existing user.
+        """
         print("User already exists. Do you want to add another template?")
         opt = input("[y]/n: ")
 

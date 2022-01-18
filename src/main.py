@@ -8,6 +8,10 @@ import cv2
 
 
 class App:
+    """
+    App is the main coordinator for the IdentiMood application.
+    """
+
     def __init__(self, config, claimed_identity):
         self.config = config
         self.claimed_identity = claimed_identity
@@ -18,6 +22,9 @@ class App:
             sys.exit(1)
 
     def authenticate(self) -> bool:
+        """
+        Starts the authentication procedure, by verifying identity and mood in two separate steps.
+        """
         identity_verified, aborted = self.show_photo_window(OPERATION_VERIFY_IDENTITY)
         if aborted:
             return False
@@ -26,12 +33,20 @@ class App:
         return identity_verified and mood_verified
 
     def show_photo_window(self, operation: int) -> (bool, bool):
+        """
+        Shows a Window to shot the picture.
+        Returns a tuple (identity_verified, operation_has_been_aborted).
+        """
         window = Window(operation)
         if window.shot_button_pressed:
             return self.handle_probe(operation, window.frame), False
         return False, True
 
     def handle_probe(self, operation: int, frame) -> (bool, bool):
+        """
+        Calls the given recognition operation on the given frame.
+        Returns True if the result of the operation was successful.
+        """
         verified = False
         try:
             self.operations.detect_face(frame)
