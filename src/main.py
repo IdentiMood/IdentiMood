@@ -76,6 +76,9 @@ if __name__ == "__main__":
 
     if opt in ("", "y"):
         authenticated = app.authenticate()
-        print("Authenticated:", authenticated)
+        if not authenticated:
+            print("Authentication failed.", file=sys.stderr)
+            sys.exit(1)
+        print("Authenticated.")
     else:
         sys.exit(1)

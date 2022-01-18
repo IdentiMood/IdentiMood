@@ -10,5 +10,6 @@
     "mood": {
         "threshold_percent": 70.0,
         "detector_backend": "opencv"
-    }
+    },
+    "debug": true
 }

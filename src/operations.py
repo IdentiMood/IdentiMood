@@ -14,6 +14,7 @@ class Operations:
     def __init__(self, config):
         self.gallery_path = config["gallery_path"]
         self.config = config
+        self.is_debug = config["debug"]
 
     def get_enrolled_identities(self) -> list:
         """
@@ -97,7 +98,9 @@ class Operations:
         files = self.get_gallery_templates(identity_claim)
         results = []
         for template in files:
-            print(f"Verifying probe against template {template}...")
+            if self.is_debug:
+                print(f"Verifying probe against template {template}...")
+
             try:
                 result = DeepFace.verify(
                     img1_path=probe,
@@ -144,7 +147,9 @@ class Operations:
         """
         favorite_mood = self.load_meta(identity_claim)["favorite_mood"]
 
-        print("Finding the probe's mood")
+        if self.is_debug:
+            print("Finding the probe's mood")
+
         result = DeepFace.analyze(
             probe,
             actions=["emotion"],
