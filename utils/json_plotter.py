@@ -7,6 +7,21 @@ import os
 import argparse
 import numpy as np
 
+def create_plot_path(dataset_name, model, metric, plot_name):
+    time_stamp = datetime.fromtimestamp(
+        time.time()).strftime('%y_%m_%d_%H-%M-%S'
+    )
+
+    file_path = args.plot_save_dir + "/" + dataset_name + "/" + \
+            model + "/" + metric + "/"
+
+    if not os.path.exists(file_path):
+        os.makedirs(file_path)
+            
+    file_name = plot_name + "_" + time_stamp + ".png"
+
+    return file_path + file_name
+
 parser = argparse.ArgumentParser()
 
 parser.add_argument(
@@ -28,10 +43,6 @@ if args.input_json == None:
 
 if args.plot_save_dir == None:
     args.plot_save_dir = "./plots"
-
-for sub_dir in ["/threshold_vs_frr_far", "/roc", "/det"]:
-    if not os.path.exists(args.plot_save_dir + sub_dir):
-        os.makedirs(args.plot_save_dir + sub_dir)
 
 # Opening JSON file
 f = open(args.input_json)
@@ -63,8 +74,6 @@ metrics = list(json_content["genuine_acceptances"])
 models_temp_key = list(json_content["genuine_acceptances"])[0]
 models = list(json_content["genuine_acceptances"][models_temp_key])
 
-time_stamp = datetime.fromtimestamp(time.time()).strftime('%y_%m_%d_%H-%M-%S')
-
 # plotting:
 # threshold vs. FAR & FRR --> x = thresholds, y = FRR, FAR
 # ROC                     --> x = FAR, y = GAR
@@ -76,26 +85,27 @@ for metric in metrics:
         if "VGG-Face" in model and "VGG-Face" in dataset_name:
             print("SKIPPING", model, dataset_name, "combo")
             continue
-
+        
         far = list(json_content["false_acceptance_rate"][metric][model].values())
-        far_np = np.array(far)
-        far_max_val = far_np.max()
-        far_max_ind = far_np.argmax()
-
         frr = list(json_content["false_rejection_rate"][metric][model].values())
-        frr_np = np.array(frr)
-        frr_min_val = frr_np.min()
-        frr_min_ind = frr_np.argmin()
 
-        far_frr_ind = max(far_max_ind, frr_min_ind) + 1
+        if metric == "cosine":
+            far_frr_ind = len(far)
+        else:
+            far_np = np.array(far)
+            far_max_val = far_np.max()
+            far_max_ind = far_np.argmax()
+
+            frr_np = np.array(frr)
+            frr_min_val = frr_np.min()
+            frr_min_ind = frr_np.argmin()
+
+            far_frr_ind = max(far_max_ind, frr_min_ind) + 1
 
         thresholds = list(
             json_content["false_acceptance_rate"][metric][model].keys()
         )
         thresholds_np = np.array(thresholds).astype(np.float64)[:far_frr_ind]
-
-        plot_file_full_path = args.plot_save_dir + "/threshold_vs_frr_far/" + \
-            metric + "_" + model + "_" + time_stamp + ".png"
         
         # plotting:
         # threshold vs. FAR & FRR --> x = thresholds, y = FRR, FAR
@@ -107,7 +117,7 @@ for metric in metrics:
             line_label = [ "False Acceptance Rate", "False Rejection Rate" ],
             plot_name = f"thresholds VS. FRR & FAR\nDataset: {dataset_name}\nDistance metric: {metric}. Deep Learning model: {model}",
             show_plot = args.show_plot,
-            plot_file_full_path = plot_file_full_path,
+            plot_file_full_path = create_plot_path(dataset_name, model, metric, "thresholds_vs_FAR_FRR"),
             x_axis_scale = "linear", y_axis_scale = "linear",
             legend_font_size = "small"
         )
@@ -117,10 +127,10 @@ for metric in metrics:
         gar_max_val = gar_np.max()
         gar_max_ind = gar_np.argmax()
 
-        gar_far_ind = max(gar_max_ind, far_max_ind) + 1
-
-        plot_file_full_path = args.plot_save_dir + "/roc/" + metric + "_" + \
-            model + "_" + time_stamp + ".png"
+        if metric == "cosine":
+            gar_far_ind = len(gar)
+        else:   
+            gar_far_ind = max(gar_max_ind, far_max_ind) + 1
         
         # plotting:
         # ROC --> x = FAR, y = GAR
@@ -131,13 +141,10 @@ for metric in metrics:
             line_label = ["ROC"],
             plot_name = f"ROC\nDataset: {dataset_name}\nDistance metric: {metric}. Deep Learning model: {model}",
             show_plot = args.show_plot,
-            plot_file_full_path = plot_file_full_path,
+            plot_file_full_path = create_plot_path(dataset_name, model, metric, "ROC"),
             x_axis_scale = "linear", y_axis_scale = "linear",
             legend_font_size = "medium"
         )
-
-        plot_file_full_path = args.plot_save_dir + "/det/" + metric + "_" + \
-            model + "_" + time_stamp + ".png"
         
         # plotting:
         # DET (logarithmic scale) --> x = FAR, y = FRR
@@ -148,9 +155,7 @@ for metric in metrics:
             line_label = ["DET"],
             plot_name = f"DET\nDataset: {dataset_name}\nDistance metric: {metric}. Deep Learning model: {model}",
             show_plot = args.show_plot,
-            plot_file_full_path = plot_file_full_path,
-            # TODO DET should take logarithmic scale for both axes
-            # find a way to set them
+            plot_file_full_path = create_plot_path(dataset_name, model, metric, "DET"),
             x_axis_scale = "linear", y_axis_scale = "linear",
             legend_font_size = "medium"
         )
