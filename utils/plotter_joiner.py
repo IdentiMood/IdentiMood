@@ -1,11 +1,16 @@
 import argparse
+from ast import arg
 import json
 import glob
+from turtle import color
 import matplotlib.pyplot as plt
 import warnings
 import numpy as np
 import warnings
 
+
+colors = ["b", "g", "r", "c", "m", "y", "k", "brown", "orange"]
+indexColor = 0
 curveType = ["roc", "det", "fvf"]
 models_list = [ 
     'VGG-Face', 'OpenFace',
@@ -64,28 +69,32 @@ def rocPlotter(obj, metric, model):
     far = getCurve(obj, "false_acceptance_rate", metric, model)
     gar = getCurve(obj, "genuine_acceptance_rate", metric, model)
     (far, gar) = intersectAxes(far, gar)
-    plt.plot(far, gar)
+    plt.plot(far, gar, label = model)
 
 def detPlotter(obj, metric, model):
     far = getCurve(obj, "false_acceptance_rate", metric, model)
     frr = getCurve(obj, "false_rejection_rate", metric, model)
     (far, frr) = intersectAxes(far, frr)
-    plt.plot(far, frr)
+    plt.plot(far, frr, label = model)
+    plt.xscale("log")
+    plt.yscale("log")
 
 def farFrrPlotter(obj, metric, model):
+    global indexColor
     far = getCurve(obj, "false_acceptance_rate", metric, model)
     frr = getCurve(obj, "false_rejection_rate", metric, model)
     (far, frr) = intersectAxes(far, frr)
     thresholds = getThresholds(obj)[:len(far)]
-    plt.plot(thresholds, far)
-    plt.plot(thresholds, frr)
+    plt.plot(thresholds, far, label = model, color = colors[indexColor])
+    plt.plot(thresholds, frr, label = model, color = colors[indexColor])
+    indexColor += 1
 
 parser = argparse.ArgumentParser()
 parser.add_argument("files", nargs="+", type=str)
 parser.add_argument("-o", "--output", help="File containing the dataset's file paths")
 parser.add_argument("-m", "--metric", help="cosine, euclidean, euclidean_l2", type=str, required=True)
 parser.add_argument("-ct", "--curve-type", help="roc, det, fvf", type=str, required=True)
-parser.add_argument("-ds", "--dataset", help="cosine, euclidean, euclidean_l2", type=str)
+parser.add_argument("-ds", "--dataset", type=str)
 parser.add_argument("-mn", "--models-name", nargs="+", help="VGG-Face, OpenFace, Facenet, Facenet512, DeepFace, DeepID, Dlib, ArcFace, *(all)", type=str, required=True)
 parser.add_argument("-s", "--show-plot", help = "Whether to show the plots as they are computed", action="store_true")
 parser.add_argument("-dw", "--dont-worry", help = "Suppress wornings", action="store_true")
@@ -106,7 +115,15 @@ files = list(set([el for lst in files for el in lst]))
 json_contents = list(map(loadJson, files))
 
 if args.dataset:
-    json_contents = list(filter(lambda x: "dataset_name" in x and args.dataset == x["dataset_name"], json_contents))
+    lst = []
+    fileDump = []
+    for i in range(len(json_contents)):
+        if ("dataset_name" in json_contents[i] and args.dataset == json_contents[i]["dataset_name"]):
+            lst.append(json_contents[i])
+            fileDump.append(files[i])
+    files = fileDump
+    json_contents = lst
+
     if json_contents == []:
         msg = f"Dataset {args.dataset} not found"
         raise Exception(msg)
@@ -117,8 +134,10 @@ for index in range(len(json_contents)):
         try:
             if args.curve_type == "roc":
                 rocPlotter(obj, args.metric, model)
+                print(files[index], model, obj["dataset_name"])
             elif args.curve_type == "det":
                 detPlotter(obj, args.metric, model)
+                print(files[index], model, obj["dataset_name"])
             elif args.curve_type == "fvf":
                 farFrrPlotter(obj, args.metric, model)
         except KeyError as e:
@@ -126,6 +145,9 @@ for index in range(len(json_contents)):
                 continue
             msg = f'{e} key doesn\'t exist on {files[index]}'
             warnings.warn(msg)
+
+plt.legend()
+plt.title("Metric: " + args.metric + "\n Dataset: " + args.dataset)
 
 if args.output:
     plt.savefig(args.output, dpi = 300)
