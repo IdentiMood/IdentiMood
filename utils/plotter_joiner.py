@@ -7,9 +7,9 @@ import matplotlib.pyplot as plt
 import warnings
 import numpy as np
 import warnings
+from sklearn import metrics as skMetrics
 
-
-colors = ["b", "g", "r", "c", "m", "y", "k", "brown", "orange"]
+colors = ["b", "g", "r", "c", "m", "y", "k", "brown", "orange", "pink", "grey", "cyan", "olive", "peru", "navy", "teal", "dodgerblue"]
 indexColor = 0
 curveType = ["roc", "det", "fvf"]
 models_list = [ 
@@ -54,6 +54,13 @@ def getThresholds(obj):
 def getCurve(obj, curveType, metric, model):
     return list(obj[curveType][metric][model].values())
 
+def getAreaLable(model, curve):
+    c1, c2 = curve
+    c1 = np.array(c1)
+    c2 = np.array(c2)
+    area = skMetrics.auc(np.array(c1), np.array(c2))
+    return model + " " + str(round(area, 4))
+
 def intersectAxes(a1, a2):
     maxInd = 0
     minInd = 0
@@ -68,14 +75,12 @@ def intersectAxes(a1, a2):
 def rocPlotter(obj, metric, model):
     far = getCurve(obj, "false_acceptance_rate", metric, model)
     gar = getCurve(obj, "genuine_acceptance_rate", metric, model)
-    (far, gar) = intersectAxes(far, gar)
-    plt.plot(far, gar, label = model)
+    plt.plot(far, gar, label = getAreaLable(model, (far, gar)))
 
 def detPlotter(obj, metric, model):
     far = getCurve(obj, "false_acceptance_rate", metric, model)
     frr = getCurve(obj, "false_rejection_rate", metric, model)
-    (far, frr) = intersectAxes(far, frr)
-    plt.plot(far, frr, label = model)
+    plt.plot(far, frr, label = getAreaLable(model, (far, frr)))
     plt.xscale("log")
     plt.yscale("log")
 
@@ -134,17 +139,18 @@ for index in range(len(json_contents)):
         try:
             if args.curve_type == "roc":
                 rocPlotter(obj, args.metric, model)
-                print(files[index], model, obj["dataset_name"])
             elif args.curve_type == "det":
                 detPlotter(obj, args.metric, model)
-                print(files[index], model, obj["dataset_name"])
             elif args.curve_type == "fvf":
                 farFrrPlotter(obj, args.metric, model)
+            print(files[index], model, obj["dataset_name"])
         except KeyError as e:
             if (args.dont_worry):
                 continue
             msg = f'{e} key doesn\'t exist on {files[index]}'
             warnings.warn(msg)
+        
+
 
 plt.legend()
 plt.title("Metric: " + args.metric + "\n Dataset: " + args.dataset)
