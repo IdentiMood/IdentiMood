@@ -153,6 +153,8 @@ for index in range(len(json_contents)):
 
 
 plt.legend()
+if not args.dataset:
+    args.dataset = "All datasets"
 plt.title("Metric: " + args.metric + "\n Dataset: " + args.dataset)
 
 if args.output:
