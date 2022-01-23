@@ -44,6 +44,28 @@ if args.input_json == None:
 if args.plot_save_dir == None:
     args.plot_save_dir = "./plots"
 
+model_color_map = {
+    'VGG-Face' : "red", 
+    'OpenFace' : "lime", 
+    'Facenet' : "blue", 
+    'Facenet512' : "purple", 
+    'DeepFace' : "coral", 
+    'DeepID' : "olive",
+	'Dlib' : "turquoise", 
+    'ArcFace' : "cornflowerblue"
+}
+
+model_color_map_alt = {
+    'VGG-Face' : "maroon", 
+    'OpenFace' : "darkgreen", 
+    'Facenet' : "midnightblue", 
+    'Facenet512' : "blueviolet", 
+    'DeepFace' : "orangered", 
+    'DeepID' : "darkolivegreen",
+	'Dlib' : "teal", 
+    'ArcFace' : "dodgerblue"
+}
+
 # Opening JSON file
 f = open(args.input_json)
 
@@ -119,7 +141,8 @@ for metric in metrics:
             show_plot = args.show_plot,
             plot_file_full_path = create_plot_path(dataset_name, model, metric, "thresholds_vs_FAR_FRR"),
             x_axis_scale = "linear", y_axis_scale = "linear",
-            legend_font_size = "small"
+            legend_font_size = "small",
+            color = [model_color_map[model], model_color_map_alt[model]]
         )
 
         gar = list(json_content["genuine_acceptance_rate"][metric][model].values())
@@ -143,7 +166,8 @@ for metric in metrics:
             show_plot = args.show_plot,
             plot_file_full_path = create_plot_path(dataset_name, model, metric, "ROC"),
             x_axis_scale = "linear", y_axis_scale = "linear",
-            legend_font_size = "medium"
+            legend_font_size = "medium",
+            color = [model_color_map[model]]
         )
         
         # plotting:
@@ -151,11 +175,12 @@ for metric in metrics:
         plot(
             x_axis = [far[:far_frr_ind]],
             y_axis = [frr[:far_frr_ind]],
-            x_label = ["FAR (lower is better)"], y_label = ["FRR (lower is better)"],
+            x_label = ["FAR (higher is better)"], y_label = ["FRR (higher is better)"],
             line_label = ["DET"],
             plot_name = f"DET\nDataset: {dataset_name}\nDistance metric: {metric}. Deep Learning model: {model}",
             show_plot = args.show_plot,
             plot_file_full_path = create_plot_path(dataset_name, model, metric, "DET"),
-            x_axis_scale = "linear", y_axis_scale = "linear",
-            legend_font_size = "medium"
+            x_axis_scale = "log", y_axis_scale = "log",
+            legend_font_size = "medium",
+            color = [model_color_map[model]]
         )

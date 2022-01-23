@@ -12,7 +12,8 @@ def plot(
     show_plot = True,
     plot_file_full_path = None,
     x_axis_scale = "linear", y_axis_scale = "linear",
-    legend_font_size = "medium"
+    legend_font_size = "medium",
+    color = ["black"]
 ):
 
     plt.rc('legend', fontsize = legend_font_size)
@@ -64,8 +65,8 @@ def plot(
         plt.xlabel(x_label[0])
         plt.ylabel(y_label[0])
 
-    for (x, y, l) in zip(x_axis, y_axis, line_label):
-        plt.plot(x, y, label = l)
+    for (i, x, y, l) in zip(range(0, len(y_axis)), x_axis, y_axis, line_label):
+        plt.plot(x, y, label = l, color = color[i])
 
     if bool_plot_intersection:
         
