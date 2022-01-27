@@ -6,15 +6,23 @@ import numpy as np
 import time
 from datetime import datetime
 import json
+from tqdm import tqdm
 
 errors = []
 
 DEFAULT_MODELS_MASK = "10000000"
 
-models_list = [ 
-    'VGG-Face', 'OpenFace', 'Facenet', 'Facenet512', 'DeepFace', 'DeepID',
-	'Dlib', 'ArcFace'
+models_list = [
+    "VGG-Face",
+    "OpenFace",
+    "Facenet",
+    "Facenet512",
+    "DeepFace",
+    "DeepID",
+    "Dlib",
+    "ArcFace",
 ]
+
 
 class NpEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -30,13 +38,15 @@ class NpEncoder(json.JSONEncoder):
 parser = argparse.ArgumentParser()
 parser.add_argument("-i", "--input", help="File containing the dataset's file paths")
 parser.add_argument(
-    "-e", "--evaluation-method", 
+    "-e",
+    "--evaluation-method",
     help=" \
         0 --> actual emotion should be the same of DeepFace predominant \
         emotion. \
         1 --> 0 + relative distance from prevalent and second prevalent \
         emotion must be greater than a threshold",
-    default = 0
+    default=0,
+    type=int,
 )
 parser.add_argument(
     "-l",
@@ -55,37 +65,42 @@ parser.add_argument(
     type=float,
 )
 parser.add_argument(
-    "-m", "--models-mask", 
+    "-m",
+    "--models-mask",
     help="Binary mask to decide what Deep Learning models to use for face\
     verification. Mask index meaning: 0 --> VGG, 1 --> OpenFace, 2--> Facenet,\
     3 --> Facenet512, 4 --> Facebook DeepFace, 5 --> DeepID, 6 --> Dlib, 7 -->\
-    ArcFace", type=str
+    ArcFace",
+    type=str,
+)
+parser.add_argument(
+    "-min",
+    "--minimal-output",
+    help="Whether to have a small minimal output (progress bar only)",
+    action="store_true",
 )
 
 args = parser.parse_args()
 
 if args.threshold_range:
     args.thresholds = np.linspace(
-        args.threshold_range[0], args.threshold_range[1], 
-        int(args.threshold_range[2])
+        args.threshold_range[0], args.threshold_range[1], int(args.threshold_range[2])
     )
 else:
     args.thresholds = [0]
 
-if not (set(args.models_mask).issubset({'0', '1'}) and bool(args.models_mask)):
+if not (set(args.models_mask).issubset({"0", "1"}) and bool(args.models_mask)):
     args.models_mask = DEFAULT_MODELS_MASK
     print("Provided models mask not binary, defaulting to", DEFAULT_MODELS_MASK)
 
 if len(args.models_mask) != len(models_list):
     args.models_mask = DEFAULT_MODELS_MASK
-    print(
-        "Provided models mask not complete, defaulting to", DEFAULT_MODELS_MASK
-    )
+    print("Provided models mask not complete, defaulting to", DEFAULT_MODELS_MASK)
 
 models_dict = {}
 
 for (i, j) in zip(list(range(0, len(args.models_mask))), models_list):
-    if args.models_mask[i] == "1": 
+    if args.models_mask[i] == "1":
         models_dict[j] = DeepFace.build_model(j)
 
 
@@ -102,9 +117,7 @@ analyze_output_hardcoded = {
     },
 }
 
-TUTFS_emotion_codes = [
-    "neutral", "neutral", "happy", "neutral", "surprise", "neutral"
-]
+TUTFS_emotion_codes = ["neutral", "neutral", "happy", "neutral", "surprise", "neutral"]
 
 KDEF_emotion_codes = {
     "AF": "fear",
@@ -117,8 +130,15 @@ KDEF_emotion_codes = {
 }
 
 yalefaces_neutral_cases = [
-    "glasses", "leftlight", "centerlight", "rightlight", "noglasses", "normal", 
-    "sleepy", "wink", "gif"
+    "glasses",
+    "leftlight",
+    "centerlight",
+    "rightlight",
+    "noglasses",
+    "normal",
+    "sleepy",
+    "wink",
+    "gif",
 ]
 
 with open(args.input) as file:
@@ -127,6 +147,7 @@ with open(args.input) as file:
     if args.limit is not None:
         lines = lines[: args.limit]
     total_lines = len(lines) * len(args.thresholds) * len(models_dict.keys())
+
 
 def yalefaces_actual_emotion(file_name):
     emotion = file_name.split(".")[-3]
@@ -138,30 +159,35 @@ def yalefaces_actual_emotion(file_name):
     else:
         return emotion
 
+
 def is_TUTFS(folder_name):
     return folder_name.isdigit()
+
 
 def is_yalefaces(folder_name):
     return "subject" in folder_name
 
 
 def verify_emotion_thresholds(
-    analyze_output, actual_emotion, threshold, first_emotion_score = None, 
-    second_emotion_score = None
-):    
-
-    bool_emotion_match = analyze_output["dominant_emotion"]  == actual_emotion
+    analyze_output,
+    actual_emotion,
+    threshold,
+    first_emotion_score=None,
+    second_emotion_score=None,
+):
+    bool_emotion_match = analyze_output["dominant_emotion"] == actual_emotion
 
     if args.evaluation_method == 0:
         return bool_emotion_match
-    elif args.evaluation_method == 1:
-        return \
-            bool_emotion_match and \
-            abs(first_emotion_score - second_emotion_score) >= threshold
+    if args.evaluation_method == 1:
+        return (
+            bool_emotion_match
+            and abs(first_emotion_score - second_emotion_score) >= threshold
+        )
 
 
 def compute_emotions_against_thresholds(thresholds=[0]):
-    
+
     errors_count = dict()
 
     for model in models_dict.keys():
@@ -172,8 +198,7 @@ def compute_emotions_against_thresholds(thresholds=[0]):
 
     current_combination = 1
 
-    for line in lines:
-
+    for line in tqdm(lines):
         for model in models_dict.keys():
 
             try:
@@ -185,33 +210,30 @@ def compute_emotions_against_thresholds(thresholds=[0]):
 
                 continue
 
-            first_emotion_score = analyze_output["dominant_emotion"]
+            dominant_emotion = analyze_output["dominant_emotion"]
+            first_emotion_score = float(analyze_output["emotion"][dominant_emotion])
             sorted_emotion_dict = dict(
-                sorted(
-                    analyze_output["emotion"].items(), key=lambda item: item[1]
-                )    
+                sorted(analyze_output["emotion"].items(), key=lambda item: item[1])
             )
-            second_emotion_score = sorted_emotion_dict[
-                list(sorted_emotion_dict.keys())[1]
-            ]
-            
+            second_emotion = list(sorted_emotion_dict.keys())[1]
+            second_emotion_score = float(sorted_emotion_dict[second_emotion])
+
             folder_name = os.path.basename(os.path.dirname(line))
 
             if is_TUTFS(folder_name):
-                actual_emotion = TUTFS_emotion_codes[
-                    int(os.path.basename(line)[-5])
-                ]
+                actual_emotion = TUTFS_emotion_codes[int(os.path.basename(line)[-5])]
             elif is_yalefaces(folder_name):
                 actual_emotion = yalefaces_actual_emotion(line)
             else:
-                actual_emotion = KDEF_emotion_codes[
-                    os.path.basename(line)[-7:-5]
-                ]
+                actual_emotion = KDEF_emotion_codes[os.path.basename(line)[-7:-5]]
 
             for threshold in thresholds:
                 verified = verify_emotion_thresholds(
-                    analyze_output, actual_emotion, threshold, 
-                    first_emotion_score, second_emotion_score
+                    analyze_output,
+                    actual_emotion,
+                    threshold,
+                    first_emotion_score,
+                    second_emotion_score,
                 )
 
                 if verified:
@@ -219,18 +241,18 @@ def compute_emotions_against_thresholds(thresholds=[0]):
                 else:
                     errors_count[model][threshold]["wrong"] += 1
 
-                print(f"Analyzing file: {line}")
-                print(f"Model:          {model}")
-                print(f"DeepFace says:  {analyze_output['dominant_emotion']}")
-                print(f"Should be:      {actual_emotion}")
-                print(f"Threshold:      {threshold}")
-                print(
-                    f"Progress:             {current_combination}/{total_lines} \
-                    [{round(current_combination/total_lines * 100, 2)}%]"
-                )
-                print(
-                    "----------------------------------------------------------"
-                )
+                if not args.minimal_output:
+                    print(f"Analyzing file: {line}")
+                    print(f"Model:          {model}")
+                    print(f"DeepFace says:  {analyze_output['dominant_emotion']}")
+                    print(f"Second emotion: {second_emotion}")
+                    print(f"Should be:      {actual_emotion}")
+                    print(f"Threshold:      {threshold}")
+                    print(
+                        f"Progress:             {current_combination}/{total_lines} \
+                        [{round(current_combination/total_lines * 100, 2)}%]"
+                    )
+                    print("----------------------------------------------------------")
 
                 current_combination += 1
 

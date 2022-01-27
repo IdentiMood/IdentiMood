@@ -11,14 +11,16 @@ import numpy as np
 parser = argparse.ArgumentParser()
 
 parser.add_argument(
-    "-p", "--show-plot", 
-    help = "Whether to show the plots as they are computed", action="store_true"
+    "-p",
+    "--show-plot",
+    help="Whether to show the plots as they are computed",
+    action="store_true",
 )
 parser.add_argument(
-    "-d", "--plot-save-dir", help = "Directory in which to store computed plots"
+    "-d", "--plot-save-dir", help="Directory in which to store computed plots"
 )
 parser.add_argument(
-    "-i", "--input-json", help = "JSON storing data to compute plots from"
+    "-i", "--input-json", help="JSON storing data to compute plots from"
 )
 
 args = parser.parse_args()
@@ -43,7 +45,7 @@ json_content = json.load(f)
 # Closing file
 f.close()
 
-time_stamp = datetime.fromtimestamp(time.time()).strftime('%y_%m_%d_%H-%M-%S')
+time_stamp = datetime.fromtimestamp(time.time()).strftime("%y_%m_%d_%H-%M-%S")
 
 models = list(json_content.keys())
 
@@ -57,26 +59,24 @@ y_axis_correct = dict(list())
 y_axis_wrong = dict(list())
 
 for model in models:
-    
+
     y_axis_correct[model] = list()
     y_axis_wrong[model] = list()
 
     for threshold in thresholds:
-        
+
         num_correct = json_content[model][threshold]["correct"]
         num_wrong = json_content[model][threshold]["wrong"]
         num_tot = num_correct + num_wrong
 
         positive_ratio = num_correct / num_tot * 100
-        
+
         # y_axis_correct[model].append(num_correct)
         # y_axis_wrong[model].append(num_wrong)
         y_axis_correct[model].append(num_correct / num_tot * 100)
         y_axis_wrong[model].append(num_wrong / num_tot * 100)
 
-line_label_correct = [
-    model + " (correct emotion recognition)" for model in models
-]
+line_label_correct = [model + " (correct emotion recognition)" for model in models]
 line_label_wrong = [model + " (wrong emotion recognition)" for model in models]
 
 plot_file_full_path = args.plot_save_dir + time_stamp + ".png"
@@ -89,13 +89,11 @@ ax1.set_ylabel("% of correct emotion idenfications (higher is better)")
 ax2 = ax1.twinx()
 ax2.set_ylabel("% of wrong emotion idenfications (lower is better)")
 
-fig.suptitle(
-    "thresholds VS. correct & wrong emotion recognition ratios"
-)
+fig.suptitle("thresholds VS. correct & wrong emotion recognition ratios")
 plt.title("Datasets: TUTFS, KDEF, yalefaces & VGG-Face2")
 
 # color_correct = [
-#     "#9DA1AA", "#1C1C1C", "#89AC76", "#8B8C7A", "#CC0605", "#AF2B1E", "#F44611", 
+#     "#9DA1AA", "#1C1C1C", "#89AC76", "#8B8C7A", "#CC0605", "#AF2B1E", "#F44611",
 #     "#2E3A23"
 # ]
 
@@ -105,42 +103,62 @@ plt.title("Datasets: TUTFS, KDEF, yalefaces & VGG-Face2")
 # ]
 
 color_correct = [
-    "#9DA1AA", "#9DA1AA", "#9DA1AA", "#9DA1AA", "#9DA1AA", "#9DA1AA", "#9DA1AA", 
-    "#9DA1AA"
+    "#9DA1AA",
+    "#9DA1AA",
+    "#9DA1AA",
+    "#9DA1AA",
+    "#9DA1AA",
+    "#9DA1AA",
+    "#9DA1AA",
+    "#9DA1AA",
 ]
 
 color_wrong = [
-    "#015D52", "#015D52", "#015D52", "#015D52", "#015D52", "#015D52", "#015D52",
-    "#015D52"
+    "#015D52",
+    "#015D52",
+    "#015D52",
+    "#015D52",
+    "#015D52",
+    "#015D52",
+    "#015D52",
+    "#015D52",
 ]
 
 for (
-    x_axis, y_correct, y_wrong, label_correct, label_wrong, color_correct, 
-    color_wrong
+    x_axis,
+    y_correct,
+    y_wrong,
+    label_correct,
+    label_wrong,
+    color_correct,
+    color_wrong,
 ) in zip(
-    x_axis, [y_axis_correct[model] for model in models], 
-    [y_axis_wrong[model] for model in models], line_label_correct, 
-    line_label_wrong, color_correct, color_wrong
+    x_axis,
+    [y_axis_correct[model] for model in models],
+    [y_axis_wrong[model] for model in models],
+    line_label_correct,
+    line_label_wrong,
+    color_correct,
+    color_wrong,
 ):
 
-    ax1.plot(x_axis, y_correct, label = label_correct, color = color_correct)
+    ax1.plot(x_axis, y_correct, label=label_correct, color=color_correct)
     # ax1.legend()
     ax1.legend(
-        loc='upper left', 
-        ncol=1,
-        bbox_to_anchor=(0.075, 1),
-        fancybox=True, 
-        shadow=False
+        loc="upper left", ncol=1, bbox_to_anchor=(0.075, 1), fancybox=True, shadow=False
     )
-    
-    ax2.plot(x_axis, y_wrong, label = label_wrong, color = color_wrong)
+
+    # draw an invisible point to normalize the vertical axis ticks
+    ax1.plot([0], [100])
+
+    ax2.plot(x_axis, y_wrong, label=label_wrong, color=color_wrong)
     # ax2.legend()
     ax2.legend(
-        loc='upper right', 
-        ncol=1, 
+        loc="upper right",
+        ncol=1,
         bbox_to_anchor=(0.925, 1),
-        fancybox=True, 
-        shadow=False
+        fancybox=True,
+        shadow=False,
     )
 
 intersection_model = "VGG-Face"
@@ -156,35 +174,39 @@ eer_vertical_line_y = np.linspace(0, intersection.y, 100)
 eer_vertical_line_x = np.empty(100)
 eer_vertical_line_x.fill(intersection.x)
 
-print(intersection)
-
-eer_threshold = (round(intersection.x, 2))
+eer_threshold = round(intersection.x, 2)
 custom_ticks = np.append(ax1.get_xticks(), eer_threshold)
 sorted_custom_ticks = np.sort(custom_ticks)
 
 ax1.set_xticks(sorted_custom_ticks)
-ax1.tick_params(axis = 'x',labelrotation = 45)
+ax1.tick_params(axis="x", labelrotation=45)
 plt.tight_layout()
 
 plt.plot(
-    eer_vertical_line_x, eer_vertical_line_y,
-    linestyle='dashed', color = "magenta",
-    label = "Threshold to get EER"
+    eer_vertical_line_x,
+    eer_vertical_line_y,
+    linestyle="dashed",
+    color="magenta",
+    label="Threshold to get EER",
 )
 
 plt.plot(
-    intersection.x, intersection.y, marker = "o", markersize = 9, 
-    markeredgecolor = "magenta", markerfacecolor = "magenta", 
-    color = "magenta", label = "Equal Error Rate"
+    intersection.x,
+    intersection.y,
+    marker="o",
+    markersize=9,
+    markeredgecolor="magenta",
+    markerfacecolor="magenta",
+    color="magenta",
+    label="Equal Error Rate",
 )
 
 
-if (plot_file_full_path): 
-    plt.savefig(plot_file_full_path, dpi = 300)
+if plot_file_full_path:
+    plt.savefig(plot_file_full_path, dpi=300)
 
-if (args.show_plot):
-        plt.show()
-        plt.draw()
+if args.show_plot:
+    plt.show()
+    plt.draw()
 
 plt.clf()
-
