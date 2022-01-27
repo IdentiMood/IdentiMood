@@ -4,6 +4,8 @@ import os
 from datetime import datetime
 import time
 import matplotlib.pyplot as plt
+from shapely.geometry import LineString
+import numpy as np
 
 
 parser = argparse.ArgumentParser()
@@ -92,14 +94,24 @@ fig.suptitle(
 )
 plt.title("Datasets: TUTFS, KDEF, yalefaces & VGG-Face2")
 
+# color_correct = [
+#     "#9DA1AA", "#1C1C1C", "#89AC76", "#8B8C7A", "#CC0605", "#AF2B1E", "#F44611", 
+#     "#2E3A23"
+# ]
+
+# color_wrong = [
+#     "#015D52", "#00BB2D", "#C7B446", "#8E402A", "#2F4538", "#6D6552", "#49678D",
+#     "#6C6874"
+# ]
+
 color_correct = [
-    "#9DA1AA", "#1C1C1C", "#89AC76", "#8B8C7A", "#CC0605", "#AF2B1E", "#F44611", 
-    "#2E3A23"
+    "#9DA1AA", "#9DA1AA", "#9DA1AA", "#9DA1AA", "#9DA1AA", "#9DA1AA", "#9DA1AA", 
+    "#9DA1AA"
 ]
 
 color_wrong = [
-    "#015D52", "#00BB2D", "#C7B446", "#8E402A", "#2F4538", "#6D6552", "#49678D",
-    "#6C6874"
+    "#015D52", "#015D52", "#015D52", "#015D52", "#015D52", "#015D52", "#015D52",
+    "#015D52"
 ]
 
 for (
@@ -130,6 +142,42 @@ for (
         fancybox=True, 
         shadow=False
     )
+
+intersection_model = "VGG-Face"
+l1 = list(zip(x_axis, y_axis_correct[intersection_model]))
+l2 = list(zip(x_axis, y_axis_wrong[intersection_model]))
+
+line1 = LineString(l1)
+line2 = LineString(l2)
+
+intersection = line1.intersection(line2)
+
+eer_vertical_line_y = np.linspace(0, intersection.y, 100)
+eer_vertical_line_x = np.empty(100)
+eer_vertical_line_x.fill(intersection.x)
+
+print(intersection)
+
+eer_threshold = (round(intersection.x, 2))
+custom_ticks = np.append(ax1.get_xticks(), eer_threshold)
+sorted_custom_ticks = np.sort(custom_ticks)
+
+ax1.set_xticks(sorted_custom_ticks)
+ax1.tick_params(axis = 'x',labelrotation = 45)
+plt.tight_layout()
+
+plt.plot(
+    eer_vertical_line_x, eer_vertical_line_y,
+    linestyle='dashed', color = "magenta",
+    label = "Threshold to get EER"
+)
+
+plt.plot(
+    intersection.x, intersection.y, marker = "o", markersize = 9, 
+    markeredgecolor = "magenta", markerfacecolor = "magenta", 
+    color = "magenta", label = "Equal Error Rate"
+)
+
 
 if (plot_file_full_path): 
     plt.savefig(plot_file_full_path, dpi = 300)

@@ -30,6 +30,15 @@ class NpEncoder(json.JSONEncoder):
 parser = argparse.ArgumentParser()
 parser.add_argument("-i", "--input", help="File containing the dataset's file paths")
 parser.add_argument(
+    "-e", "--evaluation-method", 
+    help=" \
+        0 --> actual emotion should be the same of DeepFace predominant \
+        emotion. \
+        1 --> 0 + relative distance from prevalent and second prevalent \
+        emotion must be greater than a threshold",
+    default = 0
+)
+parser.add_argument(
     "-l",
     "--limit",
     help="Whether to limit the (eventually shuffled) paths list to a certain\
@@ -136,13 +145,19 @@ def is_yalefaces(folder_name):
     return "subject" in folder_name
 
 
-def verify_emotion_thresholds(analyze_output, actual_emotion, threshold):    
-    # current check just checks whether DeepFace returned a score for the actual 
-    # emotion that is higher than threshold
+def verify_emotion_thresholds(
+    analyze_output, actual_emotion, threshold, first_emotion_score = None, 
+    second_emotion_score = None
+):    
 
-    # DeepFace emotion score must be divided by 100 because is returned as 
-    # percentage
-    return (analyze_output["emotion"][actual_emotion] / 100) >= threshold
+    bool_emotion_match = analyze_output["dominant_emotion"]  == actual_emotion
+
+    if args.evaluation_method == 0:
+        return bool_emotion_match
+    elif args.evaluation_method == 1:
+        return \
+            bool_emotion_match and \
+            abs(first_emotion_score - second_emotion_score) >= threshold
 
 
 def compute_emotions_against_thresholds(thresholds=[0]):
@@ -170,6 +185,16 @@ def compute_emotions_against_thresholds(thresholds=[0]):
 
                 continue
 
+            first_emotion_score = analyze_output["dominant_emotion"]
+            sorted_emotion_dict = dict(
+                sorted(
+                    analyze_output["emotion"].items(), key=lambda item: item[1]
+                )    
+            )
+            second_emotion_score = sorted_emotion_dict[
+                list(sorted_emotion_dict.keys())[1]
+            ]
+            
             folder_name = os.path.basename(os.path.dirname(line))
 
             if is_TUTFS(folder_name):
@@ -185,7 +210,8 @@ def compute_emotions_against_thresholds(thresholds=[0]):
 
             for threshold in thresholds:
                 verified = verify_emotion_thresholds(
-                    analyze_output, actual_emotion, threshold
+                    analyze_output, actual_emotion, threshold, 
+                    first_emotion_score, second_emotion_score
                 )
 
                 if verified:
