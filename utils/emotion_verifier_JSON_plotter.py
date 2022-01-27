@@ -90,7 +90,7 @@ ax2.set_ylabel("% of wrong emotion idenfications (lower is better)")
 fig.suptitle(
     "thresholds VS. correct & wrong emotion recognition ratios"
 )
-plt.title("Dataset: TUTFS x KDEF x yalefaces")
+plt.title("Datasets: TUTFS, KDEF, yalefaces & VGG-Face2")
 
 color_correct = [
     "#9DA1AA", "#1C1C1C", "#89AC76", "#8B8C7A", "#CC0605", "#AF2B1E", "#F44611", 
