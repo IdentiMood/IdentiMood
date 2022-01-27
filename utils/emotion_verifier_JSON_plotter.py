@@ -76,8 +76,12 @@ for model in models:
         y_axis_correct[model].append(num_correct / num_tot * 100)
         y_axis_wrong[model].append(num_wrong / num_tot * 100)
 
-line_label_correct = [model + " (correct emotion recognition)" for model in models]
-line_label_wrong = [model + " (wrong emotion recognition)" for model in models]
+line_label_correct = [
+    model + " (correct emotion verification)" for model in models
+]
+line_label_wrong = [
+    model + " (wrong emotion verification)" for model in models
+]
 
 plot_file_full_path = args.plot_save_dir + time_stamp + ".png"
 
@@ -89,7 +93,7 @@ ax1.set_ylabel("% of correct emotion idenfications (higher is better)")
 ax2 = ax1.twinx()
 ax2.set_ylabel("% of wrong emotion idenfications (lower is better)")
 
-fig.suptitle("thresholds VS. correct & wrong emotion recognition ratios")
+fig.suptitle("thresholds VS. correct & wrong emotion verification ratios")
 plt.title("Datasets: TUTFS, KDEF, yalefaces & VGG-Face2")
 
 # color_correct = [
@@ -103,25 +107,25 @@ plt.title("Datasets: TUTFS, KDEF, yalefaces & VGG-Face2")
 # ]
 
 color_correct = [
-    "#9DA1AA",
-    "#9DA1AA",
-    "#9DA1AA",
-    "#9DA1AA",
-    "#9DA1AA",
-    "#9DA1AA",
-    "#9DA1AA",
-    "#9DA1AA",
+    "g",
+    "g",
+    "g",
+    "g",
+    "g",
+    "g",
+    "g",
+    "g",
 ]
 
 color_wrong = [
-    "#015D52",
-    "#015D52",
-    "#015D52",
-    "#015D52",
-    "#015D52",
-    "#015D52",
-    "#015D52",
-    "#015D52",
+    "r",
+    "r",
+    "r",
+    "r",
+    "r",
+    "r",
+    "r",
+    "r",
 ]
 
 for (
@@ -170,7 +174,7 @@ line2 = LineString(l2)
 
 intersection = line1.intersection(line2)
 
-eer_vertical_line_y = np.linspace(0, intersection.y, 100)
+eer_vertical_line_y = np.linspace(0, 100, 100)
 eer_vertical_line_x = np.empty(100)
 eer_vertical_line_x.fill(intersection.x)
 
@@ -185,20 +189,8 @@ plt.tight_layout()
 plt.plot(
     eer_vertical_line_x,
     eer_vertical_line_y,
-    linestyle="dashed",
-    color="magenta",
-    label="Threshold to get EER",
-)
-
-plt.plot(
-    intersection.x,
-    intersection.y,
-    marker="o",
-    markersize=9,
-    markeredgecolor="magenta",
-    markerfacecolor="magenta",
-    color="magenta",
-    label="Equal Error Rate",
+    linestyle="-.",
+    color="blue",
 )
 
 
