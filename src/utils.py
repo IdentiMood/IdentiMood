@@ -1,6 +1,9 @@
 import json
 import os
-import pwd
+try:
+    import pwd
+except ImportError:
+    pass
 
 KEY_ESC = 27
 KEY_ENTER = 32
@@ -45,5 +48,7 @@ def get_identity(argv: list) -> str:
     """
     if len(argv) == 1:
         # return the currently logged-in user
+        if os.name == "nt":
+            return os.getlogin()
         return pwd.getpwuid(os.getuid()).pw_name
     return argv[1]

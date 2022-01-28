@@ -154,18 +154,17 @@ class Operations:
             )
             second_emotion = list(sorted_emotion_dict.keys())[1]
             second_emotion_score = float(sorted_emotion_dict[second_emotion])
-
-            print(
-                str(
-                    abs(first_emotion_score - second_emotion_score)
-                    >= delta_percent_threshold
+            
+            res = abs(first_emotion_score - second_emotion_score) >= delta_percent_threshold
+            if self.is_debug:
+                print(
+                    f"First emotion: {first_emotion} ({first_emotion_score})\n" +
+                    f"Second emotion: {second_emotion} ({second_emotion_score})\n" +
+                    f"Delta percentage: {first_emotion_score - second_emotion_score}\n" +
+                    f"Response: {res}"
                 )
-            )
 
-            return (
-                abs(first_emotion_score - second_emotion_score)
-                >= delta_percent_threshold
-            )
+            return res
 
         favorite_mood = self.load_meta(identity_claim)["favorite_mood"]
 
@@ -181,7 +180,6 @@ class Operations:
         same_emotion = result["dominant_emotion"] == favorite_mood
 
         if self.config["mood"]["use_delta_percent"]:
-            print(result["emotion"])
             return same_emotion and __is_delta_satisfied(
                 result, self.config["mood"]["delta_percent_threshold"]
             )
