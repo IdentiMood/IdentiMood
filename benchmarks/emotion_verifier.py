@@ -10,20 +10,6 @@ from tqdm import tqdm
 
 errors = []
 
-DEFAULT_MODELS_MASK = "10000000"
-
-models_list = [
-    "VGG-Face",
-    "OpenFace",
-    "Facenet",
-    "Facenet512",
-    "DeepFace",
-    "DeepID",
-    "Dlib",
-    "ArcFace",
-]
-
-
 class NpEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, np.integer):
@@ -65,19 +51,10 @@ parser.add_argument(
     type=float,
 )
 parser.add_argument(
-    "-m",
-    "--models-mask",
-    help="Binary mask to decide what Deep Learning models to use for face\
-    verification. Mask index meaning: 0 --> VGG, 1 --> OpenFace, 2--> Facenet,\
-    3 --> Facenet512, 4 --> Facebook DeepFace, 5 --> DeepID, 6 --> Dlib, 7 -->\
-    ArcFace",
-    type=str,
-)
-parser.add_argument(
     "-min",
     "--minimal-output",
     help="Whether to have a small minimal output (progress bar only)",
-    action="store_true",
+    action="store_false",
 )
 
 args = parser.parse_args()
@@ -89,19 +66,7 @@ if args.threshold_range:
 else:
     args.thresholds = [0]
 
-if not (set(args.models_mask).issubset({"0", "1"}) and bool(args.models_mask)):
-    args.models_mask = DEFAULT_MODELS_MASK
-    print("Provided models mask not binary, defaulting to", DEFAULT_MODELS_MASK)
-
-if len(args.models_mask) != len(models_list):
-    args.models_mask = DEFAULT_MODELS_MASK
-    print("Provided models mask not complete, defaulting to", DEFAULT_MODELS_MASK)
-
-models_dict = {}
-
-for (i, j) in zip(list(range(0, len(args.models_mask))), models_list):
-    if args.models_mask[i] == "1":
-        models_dict[j] = DeepFace.build_model(j)
+models_dict = ["DeepFace_CNN_Emotion_Verification"]
 
 
 analyze_output_hardcoded = {
@@ -146,7 +111,7 @@ with open(args.input) as file:
     lines = [line.rstrip() for line in lines]
     if args.limit is not None:
         lines = lines[: args.limit]
-    total_lines = len(lines) * len(args.thresholds) * len(models_dict.keys())
+    total_lines = len(lines) * len(args.thresholds) * len(models_dict)
 
 
 def yalefaces_actual_emotion(file_name):
@@ -185,12 +150,13 @@ def verify_emotion_thresholds(
             and abs(first_emotion_score - second_emotion_score) >= threshold
         )
 
+built_model = DeepFace.build_model('Emotion')
 
 def compute_emotions_against_thresholds(thresholds=[0]):
 
     errors_count = dict()
 
-    for model in models_dict.keys():
+    for model in models_dict:
         errors_count[model] = dict()
 
         for threshold in thresholds:
@@ -199,10 +165,13 @@ def compute_emotions_against_thresholds(thresholds=[0]):
     current_combination = 1
 
     for line in tqdm(lines):
-        for model in models_dict.keys():
+    # for line in lines:
+        for model in models_dict:
 
             try:
-                analyze_output = DeepFace.analyze(line, ["emotion"])
+                analyze_output = DeepFace.analyze(
+                    line, ["emotion"], models = {"emotion": built_model}
+                )
             except ValueError as e:
                 print(e)
 
