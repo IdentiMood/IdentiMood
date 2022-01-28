@@ -87,14 +87,34 @@ plot_file_full_path = args.plot_save_dir + time_stamp + ".png"
 
 fig, ax1 = plt.subplots()
 
-ax1.set_xlabel("thresholds")
-ax1.set_ylabel("% of correct emotion idenfications (higher is better)")
+ax1.set_xlabel(
+    "threshold (as delta between the first two probability scores)", 
+    fontweight='bold',
+    fontsize = 16
+)
+ax1.set_ylabel(
+    "% of correct emotion idenfications (higher is better)",
+    fontweight='bold',
+    fontsize = 16
+)
 
 ax2 = ax1.twinx()
-ax2.set_ylabel("% of wrong emotion idenfications (lower is better)")
+ax2.set_ylabel(
+    "% of wrong emotion idenfications (lower is better)",
+    fontweight='bold',
+    fontsize = 16
+)
 
-fig.suptitle("thresholds VS. correct & wrong emotion verification ratios")
-plt.title("Datasets: TUTFS, KDEF, yalefaces & VGG-Face2")
+fig.suptitle(
+    "thresholds VS. correct & wrong emotion verification ratios",
+    fontweight='bold',
+    fontsize = 16
+)
+plt.title(
+    "Datasets: TUTFS, KDEF, yalefaces & VGG-Face2",
+    fontweight='bold',
+    fontsize = 14
+)
 
 # color_correct = [
 #     "#9DA1AA", "#1C1C1C", "#89AC76", "#8B8C7A", "#CC0605", "#AF2B1E", "#F44611",
@@ -145,11 +165,16 @@ for (
     color_correct,
     color_wrong,
 ):
-
+    
     ax1.plot(x_axis, y_correct, label=label_correct, color=color_correct)
     # ax1.legend()
     ax1.legend(
-        loc="upper left", ncol=1, bbox_to_anchor=(0.075, 1), fancybox=True, shadow=False
+        loc="upper left", 
+        ncol=1, 
+        bbox_to_anchor=(0.075, 1), 
+        fancybox=True, 
+        shadow=False,
+        prop = {'size': 10, "weight" : "bold"}
     )
 
     # draw an invisible point to normalize the vertical axis ticks
@@ -163,9 +188,10 @@ for (
         bbox_to_anchor=(0.925, 1),
         fancybox=True,
         shadow=False,
+        prop = {'size': 10, "weight" : "bold"}
     )
 
-intersection_model = "VGG-Face"
+intersection_model = "DeepEmotion"
 l1 = list(zip(x_axis, y_axis_correct[intersection_model]))
 l2 = list(zip(x_axis, y_axis_wrong[intersection_model]))
 
