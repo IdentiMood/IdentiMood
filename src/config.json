@@ -1,14 +1,16 @@
 {
     "gallery_path": "./gallery",
     "verify": {
-        "threshold": 0.3,
-        "model_name": "VGG-Face",
+        "threshold": 0.12,
+        "model_name": "Dlib",
         "detector_backend": "opencv",
         "distance_metric": "cosine",
-        "normalization": "base"
+        "normalization": "base",
+        "save_normalized_templates": true
     },
     "mood": {
-        "threshold_percent": 70.0,
+        "use_delta_percent": true,
+        "delta_percent_threshold": 70.0,
         "detector_backend": "opencv"
     },
     "debug": true

@@ -40,7 +40,11 @@ class Enroller:
             print("Authentication failed", file=sys.stderr)
             sys.exit(1)
 
-        self.operations.save_template(frame_identity, identity, preprocess=True)
+        self.operations.save_template(
+            frame_identity,
+            identity,
+            preprocess=config["verify"]["save_normalized_templates"],
+        )
         self.operations.save_mood(identity, mood)
 
     def show_window(self, operation: int):

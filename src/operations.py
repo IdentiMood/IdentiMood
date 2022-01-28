@@ -145,6 +145,28 @@ class Operations:
         Returns True if the score of the saved mood is higher than the
         configured threshold.
         """
+
+        def __is_delta_satisfied(result: dict, delta_percent_threshold: float) -> bool:
+            first_emotion = result["dominant_emotion"]
+            first_emotion_score = float(result["emotion"][first_emotion])
+            sorted_emotion_dict = dict(
+                sorted(result["emotion"].items(), key=lambda item: item[1])
+            )
+            second_emotion = list(sorted_emotion_dict.keys())[1]
+            second_emotion_score = float(sorted_emotion_dict[second_emotion])
+
+            print(
+                str(
+                    abs(first_emotion_score - second_emotion_score)
+                    >= delta_percent_threshold
+                )
+            )
+
+            return (
+                abs(first_emotion_score - second_emotion_score)
+                >= delta_percent_threshold
+            )
+
         favorite_mood = self.load_meta(identity_claim)["favorite_mood"]
 
         if self.is_debug:
@@ -156,9 +178,15 @@ class Operations:
             detector_backend=self.config["mood"]["detector_backend"],
         )
 
-        return (
-            result["emotion"][favorite_mood] >= self.config["mood"]["threshold_percent"]
-        )
+        same_emotion = result["dominant_emotion"] == favorite_mood
+
+        if self.config["mood"]["use_delta_percent"]:
+            print(result["emotion"])
+            return same_emotion and __is_delta_satisfied(
+                result, self.config["mood"]["delta_percent_threshold"]
+            )
+
+        return same_emotion
 
     def get_mood(self, probe) -> str:
         """
