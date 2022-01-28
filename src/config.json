@@ -8,7 +8,8 @@
         "normalization": "base"
     },
     "mood": {
-        "threshold_percent": 70.0,
+        "use_delta_percent": true,
+        "delta_percent_threshold": 70.0,
         "detector_backend": "opencv"
     },
     "debug": true
