@@ -1,61 +1,72 @@
 @startuml class-diagram
 
-App -- Operations
-App -- Window
-Enroller -- Operations
-Enroller -- Window
-
-class App {
-    config: dict
-    claimed_identity: str
+package "IdentiMood" {
+    App -- Operations
+    App -- Window
+    Enroller -- Operations
+    Enroller -- Window
     
-    App(config: dict, claimed_identity: str)
-    authenticate(): bool
-    show_photo_window(operation): (bool, bool)
-    handle_probe(operation, frame): (bool, bool)
+    class App {
+        config: dict
+        claimed_identity: str
+        
+        App(config: dict, claimed_identity: str)
+        authenticate(): bool
+        show_photo_window(operation): (bool, bool)
+        handle_probe(operation, frame): (bool, bool)
+    }
+
+    class Operations {
+        gallery_path: str
+        config: dict
+        is_debug: bool
+
+        Operations(config: dict)
+        get_enrolled_identities(): list
+        is_user_enrolled(identity: str): bool
+        get_gallery_templates(identity_claim: str): list
+        load_meta(identity_claim: str): dict
+        save_template(frame: img, identity: str, preprocess: bool)
+        save_mood(identity: str, mood: str)
+        verify_identity(probe: img, identity_claim: str): bool
+        detect_face(probe: img): img
+        verify_mood(probe: img, identity_claim: str): bool
+        get_mood(probe: img): str
+        _make_empty_meta(): dict
+    }
+
+    class Window {
+        window: tk.Tk
+        label: tk.Label
+        canvas: tk.Canvas
+        button: tk.Button
+        shot_button_pressed: bool
+        capture: cv2.VideoCapture
+        frame: img
+
+        start_video_loop()
+        _destroy_with_success()
+        _decorate_frame()
+    }
+
+    class Enroller {
+        config: dict
+        identity: str
+
+        Enroller(config: dict, identity: str)
+        show_window(operation: int): (bool, bool)
+        extract_mood(frame: img): str
+        _ask_authentication(): bool
+    }
 }
 
-class Operations {
-    gallery_path: str
-    config: dict
-    is_debug: bool
-
-    Operations(config: dict)
-    get_enrolled_identities(): list
-    is_user_enrolled(identity: str): bool
-    get_gallery_templates(identity_claim: str): list
-    load_meta(identity_claim: str): dict
-    save_template(frame: img, identity: str, preprocess: bool)
-    save_mood(identity: str, mood: str)
-    verify_identity(probe: img, identity_claim: str): bool
-    detect_face(probe: img): img
-    verify_mood(probe: img, identity_claim: str): bool
-    get_mood(probe: img): str
-    _make_empty_meta(): dict
+package "DeepFace" {
+    class DeepFace {
+        face_verify()
+        emotion_analyze()
+    }
 }
 
-class Window {
-    window: tk.Tk
-    label: tk.Label
-    canvas: tk.Canvas
-    button: tk.Button
-    shot_button_pressed: bool
-    capture: cv2.VideoCapture
-    frame: img
-
-    start_video_loop()
-    _destroy_with_success()
-    _decorate_frame()
-}
-
-class Enroller {
-    config: dict
-    identity: str
-
-    Enroller(config: dict, identity: str)
-    show_window(operation: int): (bool, bool)
-    extract_mood(frame: img): str
-    _ask_authentication(): bool
-}
+Operations -- DeepFace
 
 @enduml
