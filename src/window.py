@@ -25,7 +25,7 @@ class Window:
         self.canvas = tk.Label(self.window)
         self.button = tk.Button(
             self.window,
-            text="Shot picture",
+            text="Shoot picture",
             padx=20,
             pady=10,
             font=("sans-serif", 18, "bold"),
