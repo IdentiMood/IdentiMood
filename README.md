@@ -42,7 +42,7 @@ See the report/presentation for further information and detailed results.
 
 ## Authors
 
-* [Daniele Solombrino](https://github.com/DS98)
+* [Daniele Solombrino](https://github.com/dansolombrino)
 * [Davide Quaranta](https://github.com/fortym2)
 * [Emanuele Volanti](https://github.com/emavola)
 
